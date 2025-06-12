@@ -9,11 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -23,30 +26,46 @@ public class ProductController extends BaseController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ProductDto>>> getAllProducts(@RequestParam(required = false) List<String> filter, Pageable pageable) {
-        ApiResponse<Page<ProductDto>> response = ApiResponse.<Page<ProductDto>>builder()
+    public ResponseEntity<ApiResponse<PagedModel<EntityModel<ProductDto>>>> getAllProducts(
+            @RequestParam(value = "filter", required = false) List<String> filter,
+            Pageable pageable
+    ) {
+        ApiResponse<PagedModel<EntityModel<ProductDto>>> response = ApiResponse.<PagedModel<EntityModel<ProductDto>>>builder()
                 .message("Failed to fetch all products")
                 .data(null)
                 .build();
 
         try {
-            Page<Product> products = productService.getAllProducts(filter, pageable);
-            Page<ProductDto> productDtos = products.map(ProductMapper::toDto);
+            PagedModel<EntityModel<Product>> productPagedModel = productService.getAllProducts(filter, pageable);
+
+            List<EntityModel<ProductDto>> dtoContent = productPagedModel.getContent().stream()
+                    .map(entityModel -> {
+                        ProductDto dto = ProductMapper.toDto(entityModel.getContent());
+                        assert dto != null;
+                        return EntityModel.of(dto);
+                    })
+                    .collect(Collectors.toList());
+
+            PagedModel<EntityModel<ProductDto>> dtoPagedModel = PagedModel.of(
+                    dtoContent,
+                    productPagedModel.getMetadata(),
+                    productPagedModel.getLinks()
+            );
 
             response.setMessage("Fetched all products successfully!");
-            response.setData(productDtos);
+            response.setData(dtoPagedModel);
 
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             response.setMessage(e.getMessage());
 
             log.error("{} - Failed to fetch all products - {}", Utils.getClassAndMethod(), response.getMessage());
 
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@Valid @RequestBody ProductRequest request) {

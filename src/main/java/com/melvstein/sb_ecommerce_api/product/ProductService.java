@@ -1,9 +1,13 @@
 package com.melvstein.sb_ecommerce_api.product;
 
-import jakarta.validation.constraints.Null;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,12 +17,16 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
 
+    @Autowired
+    private PagedResourcesAssembler<Product> pagedResourcesAssembler;
+
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Page<Product> getAllProducts(@Null List<String> filter, Pageable pageable) {
-        return productRepository.findAll(pageable);
+    public PagedModel<EntityModel<Product>> getAllProducts(@Nullable List<String> filter, Pageable pageable) {
+        Page<Product> page = productRepository.findAll(pageable);
+        return pagedResourcesAssembler.toModel(page);
     }
 
     public Product saveProduct(Product product) {
