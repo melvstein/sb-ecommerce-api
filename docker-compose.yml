@@ -1,23 +1,22 @@
 services:
-  ecommerce-app:
+  sb-ecommerce-api-app:
     build: .
-    restart: always
-    container_name: ecommerce-app
+    container_name: sb-ecommerce-api-app
     ports:
       - "8080:8080"
     env_file:
       - .env
     depends_on:
-      - ecommerce-app-mongodb
-  ecommerce-app-mongodb:
+      - sb-ecommerce-api-mongodb
+  sb-ecommerce-api-mongodb:
     image: mongo:latest
-    container_name: ecommerce-app-mongodb
+    container_name: sb-ecommerce-api-mongodb
     ports:
       - "27017:27017"
     env_file:
       - .env
     volumes:
-      - mongo-data:/data/db
+      - sb-ecommerce-api-mongo-data:/data/db
 
 volumes:
-  mongo-data:
+  sb-ecommerce-api-mongo-data:
