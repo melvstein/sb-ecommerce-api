@@ -1,6 +1,7 @@
 services:
   sb-ecommerce-api-app:
     build: .
+    image: melvstein/sb-ecommerce-api:latest
     container_name: sb-ecommerce-api-app
     ports:
       - "8080:8080"

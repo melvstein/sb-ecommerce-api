@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends MongoRepository<Product, String> {
     public Product findBySku(String sku);
+    public void deleteBySku(String sku);
 }

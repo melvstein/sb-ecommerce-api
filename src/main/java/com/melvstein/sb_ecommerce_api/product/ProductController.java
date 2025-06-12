@@ -98,4 +98,32 @@ public class ProductController extends BaseController {
                     .body(response);
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteProductBySku(@PathVariable String id) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .message("Failed to delete product")
+                .build();
+
+        try {
+            boolean doesExists = productService.existsById(id);
+
+            if (!doesExists) {
+                response.setMessage("Product not found");
+            } else {
+                productService.deleteProductById(id);
+                response.setMessage("Product deleted successfully");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+
+            log.error("{} - Failed to delete product - {}", Utils.getClassAndMethod(), response.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(response);
+        }
+    }
 }

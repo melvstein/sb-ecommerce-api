@@ -36,4 +36,16 @@ public class ProductService {
     public Product getProductBySku(String sku) {
         return productRepository.findBySku(sku);
     }
+
+    public boolean existsById(String id) {
+        return productRepository.existsById(id);
+    }
+
+    public void deleteProductById(String id) {
+        productRepository.deleteById(id);
+    }
+
+    public void deleteProductBySku(String sku) {
+        productRepository.deleteBySku(sku);
+    }
 }
