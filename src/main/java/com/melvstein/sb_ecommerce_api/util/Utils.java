@@ -1,5 +1,10 @@
 package com.melvstein.sb_ecommerce_api.util;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Utils {
     public static String getClassName() {
         String className = "unknownClassName";
@@ -41,5 +46,21 @@ public class Utils {
         }
 
         return classAndMethod;
+    }
+
+    public static String formatInstantToDateString(Instant instant, String dateTimeFormat, String timezone) {
+        if (instant == null) return null;
+
+        return DateTimeFormatter.ofPattern(dateTimeFormat)
+                .withZone(ZoneId.of(timezone))
+                .format(instant);
+    }
+
+    public static String formatInstantToDateString(Instant instant) {
+        if (instant == null) return null;
+
+        return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.of("Asia/Manila"))
+                .format(instant);
     }
 }

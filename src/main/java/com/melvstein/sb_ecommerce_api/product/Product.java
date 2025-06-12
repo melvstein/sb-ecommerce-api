@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 @Document(collection = "products")
@@ -40,4 +40,16 @@ public class Product {
 
     @LastModifiedDate
     private Instant updatedAt;
+
+    public Date getDateCreatedAt() {
+       if (createdAt == null) return null;
+
+        return Date.from(createdAt);
+    }
+
+    public Date getDateUpdatedAt() {
+        if (updatedAt == null) return null;
+
+        return Date.from(updatedAt);
+    }
 }

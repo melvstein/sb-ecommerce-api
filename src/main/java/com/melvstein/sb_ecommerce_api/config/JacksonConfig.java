@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Instant;
 import java.util.TimeZone;
 
-@Configuration
+//@Configuration
 public class JacksonConfig {
 
-    @Bean
+    //@Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
             JavaTimeModule javaTimeModule = new JavaTimeModule();

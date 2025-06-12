@@ -1,12 +1,11 @@
 package com.melvstein.sb_ecommerce_api.product;
 
-import lombok.*;
+import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -19,9 +18,10 @@ public record ProductDto(
         String description,
         BigDecimal price,
         int stock,
-        List<String> tags, List<String> images,
-        Instant createdAt,
-        Instant updatedAt
+        List<String> tags,
+        List<String> images,
+        Date createdAt,
+        Date updatedAt
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

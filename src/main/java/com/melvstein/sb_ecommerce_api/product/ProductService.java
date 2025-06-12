@@ -1,6 +1,9 @@
 package com.melvstein.sb_ecommerce_api.product;
 
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,15 +13,19 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
 
-    public List<Product> findAll() {
+    public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Product save(Product product) {
+    public Page<Product> getAllProducts(@Null List<String> filter, Pageable pageable) {
+        return productRepository.findAll(pageable);
+    }
+
+    public Product saveProduct(Product product) {
         return productRepository.save(product);
     }
 
-    public Product findBySku(String sku) {
+    public Product getProductBySku(String sku) {
         return productRepository.findBySku(sku);
     }
 }

@@ -1,5 +1,10 @@
 package com.melvstein.sb_ecommerce_api.product;
 
+import com.melvstein.sb_ecommerce_api.util.Utils;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 public final class ProductMapper {
@@ -18,8 +23,8 @@ public final class ProductMapper {
                 .stock(product.getStock())
                 .tags(product.getTags())
                 .images(product.getImages())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
+                .createdAt(product.getDateCreatedAt())
+                .updatedAt(product.getDateUpdatedAt())
                 .build();
     }
 
@@ -41,8 +46,8 @@ public final class ProductMapper {
                 .stock(dto.stock())
                 .tags(dto.tags())
                 .images(dto.images())
-                .createdAt(dto.createdAt())
-                .updatedAt(dto.updatedAt())
+                .createdAt(dto.createdAt().toInstant())
+                .updatedAt(dto.updatedAt().toInstant())
                 .build();
     }
 
