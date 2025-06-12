@@ -1,11 +1,9 @@
-package com.melvstein.sb_ecommerce_api.controller;
+package com.melvstein.sb_ecommerce_api.product;
 
-import com.melvstein.sb_ecommerce_api.dto.ApiResponseDto;
-import com.melvstein.sb_ecommerce_api.dto.ProductDto;
-import com.melvstein.sb_ecommerce_api.mapper.ProductMapper;
-import com.melvstein.sb_ecommerce_api.model.Product;
-import com.melvstein.sb_ecommerce_api.service.ProductService;
+import com.melvstein.sb_ecommerce_api.controller.BaseController;
+import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
 import com.melvstein.sb_ecommerce_api.util.Utils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,12 +16,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductController extends BaseController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<ApiResponseDto<List<ProductDto>>> getAllProducts() {
-        ApiResponseDto<List<ProductDto>> response = ApiResponseDto.<List<ProductDto>>builder()
+    public ResponseEntity<ApiResponse<List<ProductDto>>> getAllProducts() {
+        ApiResponse<List<ProductDto>> response = ApiResponse.<List<ProductDto>>builder()
                 .message("Failed to fetch all products")
                 .data(null)
                 .build();
@@ -47,20 +45,20 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponseDto<ProductDto>> saveProduct(@RequestBody Product product) {
-        ApiResponseDto<ProductDto> response = ApiResponseDto.<ProductDto>builder()
+    public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@Valid @RequestBody ProductRequest request) {
+        ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
                 .message("Failed to save product")
                 .data(null)
                 .build();
 
         try {
-            Product existingProduct = productService.findBySku(product.getSku());
+            Product existingProduct = productService.findBySku(request.sku());
 
             if (existingProduct != null) {
                 response.setMessage("Product already exists");
                 response.setData(ProductMapper.toDto(existingProduct));
             } else {
-                Product savedProduct = productService.save(product);
+                Product savedProduct = productService.save(ProductMapper.toDocument(request));
                 response.setMessage("Product saved successfully");
                 response.setData(ProductMapper.toDto(savedProduct));
             }

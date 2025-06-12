@@ -1,7 +1,5 @@
-package com.melvstein.sb_ecommerce_api.service;
+package com.melvstein.sb_ecommerce_api.product;
 
-import com.melvstein.sb_ecommerce_api.model.Product;
-import com.melvstein.sb_ecommerce_api.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

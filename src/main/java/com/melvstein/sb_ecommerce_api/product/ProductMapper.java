@@ -1,7 +1,4 @@
-package com.melvstein.sb_ecommerce_api.mapper;
-
-import com.melvstein.sb_ecommerce_api.dto.ProductDto;
-import com.melvstein.sb_ecommerce_api.model.Product;
+package com.melvstein.sb_ecommerce_api.product;
 
 import java.util.List;
 
@@ -36,16 +33,30 @@ public final class ProductMapper {
         if (dto == null) return null;
 
         return Product.builder()
-                .id(dto.getId())
-                .sku(dto.getSku())
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .stock(dto.getStock())
-                .tags(dto.getTags())
-                .images(dto.getImages())
-                .createdAt(dto.getCreatedAt())
-                .updatedAt(dto.getUpdatedAt())
+                .id(dto.id())
+                .sku(dto.sku())
+                .name(dto.name())
+                .description(dto.description())
+                .price(dto.price())
+                .stock(dto.stock())
+                .tags(dto.tags())
+                .images(dto.images())
+                .createdAt(dto.createdAt())
+                .updatedAt(dto.updatedAt())
+                .build();
+    }
+
+    public static Product toDocument(ProductRequest request) {
+        if (request == null) return null;
+
+        return Product.builder()
+                .sku(request.sku())
+                .name(request.name())
+                .description(request.description())
+                .price(request.price())
+                .stock(request.stock())
+                .tags(request.tags())
+                .images(request.images())
                 .build();
     }
 
