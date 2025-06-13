@@ -11,6 +11,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,10 @@ public class ProductService {
 
     public Product saveProduct(Product product) {
         return productRepository.save(product);
+    }
+
+    public Optional<Product> getProductById(String id) {
+        return productRepository.findById(id);
     }
 
     public Product getProductBySku(String sku) {

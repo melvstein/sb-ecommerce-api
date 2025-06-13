@@ -17,8 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -104,27 +107,107 @@ public class ProductController extends BaseController {
     }
 
     @PatchMapping("/{id}")
-    public void updateProduct(@PathVariable String id, @RequestBody Map<String, Object> product) throws JsonProcessingException {
-        product.forEach((key, value) -> {
-            log.info("yeahs1s11s22 key={} value={}", key, value);
-        });
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteProductBySku(@PathVariable String id) {
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .message("Failed to delete product")
+    public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@PathVariable String id, @RequestBody Map<String, Object> request) {
+        ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .message("Failed to update product")
+                .data(null)
                 .build();
 
         try {
-            boolean doesExists = productService.existsById(id);
+            Optional<Product> existingProduct = productService.getProductById(id);
 
-            if (!doesExists) {
+            if (existingProduct.isEmpty()) {
+                log.warn("{} - Planet not found - id={}", Utils.getClassAndMethod(), id);
+
                 response.setMessage("Product not found");
-            } else {
-                productService.deleteProductById(id);
-                response.setMessage("Product deleted successfully");
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(response);
             }
+
+            Product product = existingProduct.get();
+
+            request.forEach((key, value) -> {
+                switch (key) {
+                    case "name":
+                        if (value instanceof String) {
+                            product.setName((String) value);
+                        }
+                        break;
+                    case "description":
+                        if (value instanceof String) {
+                            product.setDescription((String) value);
+                        }
+                        break;
+                    case "price":
+                        if (value instanceof Number) {
+                            product.setPrice(new BigDecimal(value.toString()));
+                        }
+                        break;
+                    case "stock":
+                        if (value instanceof Integer) {
+                            product.setStock((int) value);
+                        }
+                        break;
+                    case "tags":
+                        if (value instanceof List<?>) {
+                            List<?> tags = (List<?>) value;
+
+                            if (tags.stream().allMatch(elem -> elem instanceof String)) {
+                                product.setTags((List<String>) tags);
+                            }
+                        }
+                        break;
+                    default:
+                        log.warn("{} - Ignore unknown field key={} value={}", Utils.getClassAndMethod(), key, value);
+                        break;
+                }
+            });
+
+            Product savedProduct = productService.saveProduct(product);
+            ProductDto productDto = ProductMapper.toDto(savedProduct);
+
+            response.setMessage("Product updated successfully");
+            response.setData(productDto);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+
+            log.error("{} - Failed to delete product - {}", Utils.getClassAndMethod(), response.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(response);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductDto>> deleteProductBySku(@PathVariable String id) {
+        ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .message("Failed to delete product")
+                .data(null)
+                .build();
+
+        try {
+            Optional<Product> existingProduct = productService.getProductById(id);
+
+            if (existingProduct.isEmpty()) {
+                response.setMessage("Product not found");
+
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(response);
+            }
+
+            Product product = existingProduct.get();
+            ProductDto productDto = ProductMapper.toDto(product);
+
+            productService.deleteProductById(id);
+
+            response.setMessage("Product deleted successfully");
+            response.setData(productDto);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
