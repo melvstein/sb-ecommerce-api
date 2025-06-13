@@ -3,8 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: sb-ecommerce-api-app
+    container_name: sb-ecommerce-api-app-dev
     working_dir: /app
+    command: gradle bootRun --no-daemon
     ports:
       - "8080:8080"
     volumes:

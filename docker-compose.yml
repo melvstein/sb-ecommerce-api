@@ -1,9 +1,8 @@
 services:
   sb-ecommerce-api-app:
-    image: melvstein/sb-ecommerce-api:latest
     build:
       context: .
-      dockerfile: ${BUILD_DOCKER_FILE:-development/Dockerfile}
+      dockerfile: Dockerfile
     container_name: sb-ecommerce-api-app
     ports:
       - "8080:8080"
@@ -11,6 +10,8 @@ services:
       - .env
     depends_on:
       - sb-ecommerce-api-mongodb
+    networks:
+      - app-tier
   sb-ecommerce-api-mongodb:
     image: mongo:latest
     container_name: sb-ecommerce-api-mongodb
@@ -20,6 +21,12 @@ services:
       - .env
     volumes:
       - sb-ecommerce-api-mongo-data:/data/db
+    networks:
+      - app-tier
 
 volumes:
   sb-ecommerce-api-mongo-data:
+
+networks:
+  app-tier:
+    driver: bridge

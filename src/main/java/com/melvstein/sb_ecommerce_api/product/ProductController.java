@@ -106,7 +106,7 @@ public class ProductController extends BaseController {
     @PatchMapping("/{id}")
     public void updateProduct(@PathVariable String id, @RequestBody Map<String, Object> product) throws JsonProcessingException {
         product.forEach((key, value) -> {
-            log.info("yeah111222 key={} value={}", key, value);
+            log.info("yeahs1s11s22 key={} value={}", key, value);
         });
     }
 
