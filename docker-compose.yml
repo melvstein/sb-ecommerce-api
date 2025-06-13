@@ -1,9 +1,9 @@
 services:
   sb-ecommerce-api-app:
+    image: melvstein/sb-ecommerce-api:latest
     build:
       context: .
       dockerfile: ${BUILD_DOCKER_FILE:-development/Dockerfile}
-    image: melvstein/sb-ecommerce-api:latest
     container_name: sb-ecommerce-api-app
     ports:
       - "8080:8080"
