@@ -1,5 +1,7 @@
 package com.melvstein.sb_ecommerce_api.product;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melvstein.sb_ecommerce_api.controller.BaseController;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
 import com.melvstein.sb_ecommerce_api.util.Utils;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductController extends BaseController {
     private final ProductService productService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedModel<EntityModel<ProductDto>>>> getAllProducts(
@@ -97,6 +101,13 @@ public class ProductController extends BaseController {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(response);
         }
+    }
+
+    @PatchMapping("/{id}")
+    public void updateProduct(@PathVariable String id, @RequestBody Map<String, Object> product) throws JsonProcessingException {
+        product.forEach((key, value) -> {
+            log.info("yeashw111 key={} value={}", key, value);
+        });
     }
 
     @DeleteMapping("/{id}")

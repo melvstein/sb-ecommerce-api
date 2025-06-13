@@ -1,0 +1,14 @@
+# Dockerfile.dev
+FROM eclipse-temurin:21-jdk
+
+# Install curl and unzip for Gradle
+RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/*
+
+# Install Gradle manually
+ENV GRADLE_VERSION=8.4
+RUN curl -sL https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip > gradle.zip && \
+    unzip gradle.zip && mv gradle-${GRADLE_VERSION} /opt/gradle && rm gradle.zip
+ENV PATH="/opt/gradle/bin:$PATH"
+
+# Set working directory
+WORKDIR /app

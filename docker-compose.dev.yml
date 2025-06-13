@@ -1,23 +1,24 @@
 services:
   sb-ecommerce-api-app:
-    build:
-      context: .
-      dockerfile: ${BUILD_DOCKER_FILE:-development/Dockerfile}
-    image: melvstein/sb-ecommerce-api:latest
+    image: gradle:8.4.0-jdk21
     container_name: sb-ecommerce-api-app
+    working_dir: /app
+    command: gradle bootRun --no-daemon
     ports:
       - "8080:8080"
+    volumes:
+      - .:/app
+      - ~/.gradle:/home/gradle/.gradle
     env_file:
       - .env
     depends_on:
       - sb-ecommerce-api-mongodb
+
   sb-ecommerce-api-mongodb:
     image: mongo:latest
     container_name: sb-ecommerce-api-mongodb
     ports:
       - "27017:27017"
-    env_file:
-      - .env
     volumes:
       - sb-ecommerce-api-mongo-data:/data/db
 
