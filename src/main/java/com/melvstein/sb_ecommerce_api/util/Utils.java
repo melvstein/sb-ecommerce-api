@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class Utils {
     public static String getClassName() {
@@ -62,5 +63,11 @@ public class Utils {
         return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withZone(ZoneId.of("Asia/Manila"))
                 .format(instant);
+    }
+
+    public static Date fromInstantToDate(Instant instant) {
+        if (instant == null) return null;
+
+        return Date.from(instant);
     }
 }

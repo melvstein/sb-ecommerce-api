@@ -23,8 +23,8 @@ public final class ProductMapper {
                 .stock(product.getStock())
                 .tags(product.getTags())
                 .images(product.getImages())
-                .createdAt(product.getDateCreatedAt())
-                .updatedAt(product.getDateUpdatedAt())
+                .createdAt(Utils.fromInstantToDate(product.getUpdatedAt()))
+                .updatedAt(Utils.fromInstantToDate(product.getCreatedAt()))
                 .build();
     }
 

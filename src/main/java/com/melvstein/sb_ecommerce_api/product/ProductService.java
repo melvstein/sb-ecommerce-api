@@ -17,17 +17,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-
-    @Autowired
-    private PagedResourcesAssembler<Product> pagedResourcesAssembler;
+    private final PagedResourcesAssembler<Product> productPagedResourcesAssembler;
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
     public PagedModel<EntityModel<Product>> getAllProducts(@Nullable List<String> filter, Pageable pageable) {
-        Page<Product> page = productRepository.findAll(pageable);
-        return pagedResourcesAssembler.toModel(page);
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productPagedResourcesAssembler.toModel(productPage);
     }
 
     public Product saveProduct(Product product) {

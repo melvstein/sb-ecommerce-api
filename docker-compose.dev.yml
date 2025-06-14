@@ -15,7 +15,8 @@ services:
       - .env
     depends_on:
       - sb-ecommerce-api-mongodb
-
+    networks:
+      - app-tier
   sb-ecommerce-api-mongodb:
     image: mongo:latest
     container_name: sb-ecommerce-api-mongodb
@@ -23,6 +24,11 @@ services:
       - "27017:27017"
     volumes:
       - sb-ecommerce-api-mongo-data:/data/db
+    networks:
+      - app-tier
 
 volumes:
   sb-ecommerce-api-mongo-data:
+
+networks:
+  app-tier:
