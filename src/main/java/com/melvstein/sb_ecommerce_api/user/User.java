@@ -29,7 +29,7 @@ public class User {
     private String email;
 
     private String username;
-    private String passwordHash;
+    private String password;
     private String profileImageUrl;
     private boolean isActive;
     private boolean isVerified;

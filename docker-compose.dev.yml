@@ -14,12 +14,12 @@ services:
     env_file:
       - .env
     depends_on:
-      - sb-ecommerce-api-mongodb
+      - sb-ecommerce-api-dev-mongodb
     networks:
       - app-tier
-  sb-ecommerce-api-mongodb:
+  sb-ecommerce-api-dev-mongodb:
     image: mongo:latest
-    container_name: sb-ecommerce-api-mongodb
+    container_name: sb-ecommerce-api-dev-mongodb
     ports:
       - "27017:27017"
     volumes:

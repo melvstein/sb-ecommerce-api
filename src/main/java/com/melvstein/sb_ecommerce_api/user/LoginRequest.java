@@ -8,9 +8,8 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 public record LoginRequest(
-        @Email(message = "Invalid email address")
-        @NotBlank(message = "Email is required")
-        String email,
+        @NotBlank(message = "Username is required")
+        String username,
 
         @NotBlank(message = "Password is required")
         String password

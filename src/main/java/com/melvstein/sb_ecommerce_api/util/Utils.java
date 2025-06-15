@@ -1,5 +1,9 @@
 package com.melvstein.sb_ecommerce_api.util;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -69,5 +73,9 @@ public class Utils {
         if (instant == null) return null;
 
         return Date.from(instant);
+    }
+
+    public static PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

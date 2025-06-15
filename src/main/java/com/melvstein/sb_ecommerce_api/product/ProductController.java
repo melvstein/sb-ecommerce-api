@@ -176,7 +176,7 @@ public class ProductController extends BaseController {
         } catch (Exception e) {
             response.setMessage(e.getMessage());
 
-            log.error("{} - Failed to delete product - {}", Utils.getClassAndMethod(), response.getMessage());
+            log.error("{} - Failed to update product - {}", Utils.getClassAndMethod(), response.getMessage());
 
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
