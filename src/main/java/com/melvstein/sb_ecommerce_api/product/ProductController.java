@@ -45,25 +45,24 @@ public class ProductController extends BaseController {
         try {
             PagedModel<EntityModel<Product>> productPagedModel = productService.getAllProducts(filter, pageable);
 
-            List<EntityModel<ProductDto>> dtoContent = productPagedModel.getContent().stream()
+            List<EntityModel<ProductDto>> productDtoContent = productPagedModel.getContent().stream()
                     .map(entityModel -> {
-                        ProductDto dto = ProductMapper.toDto(entityModel.getContent());
-                        assert dto != null;
-                        return EntityModel.of(dto);
+                        ProductDto productDto = ProductMapper.toDto(entityModel.getContent());
+                        assert productDto != null;
+                        return EntityModel.of(productDto);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
-            PagedModel<EntityModel<ProductDto>> dtoPagedModel = PagedModel.of(
-                    dtoContent,
+            PagedModel<EntityModel<ProductDto>> productDtoPagedModel = PagedModel.of(
+                    productDtoContent,
                     productPagedModel.getMetadata(),
                     productPagedModel.getLinks()
             );
 
-            response.setMessage("Fetched all products successfully!");
-            response.setData(dtoPagedModel);
+            response.setMessage("Fetched all products successfully");
+            response.setData(productDtoPagedModel);
 
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             response.setMessage(e.getMessage());
 
@@ -75,18 +74,20 @@ public class ProductController extends BaseController {
 
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@RequestBody @Valid ProductRequest request) {
         ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
                 .message("Failed to save product")
                 .data(null)
                 .build();
 
         try {
-            Product existingProduct = productService.getProductBySku(request.sku());
+            Optional<Product> existingProduct = productService.getProductBySku(request.sku());
 
-            if (existingProduct != null) {
+            if (existingProduct.isPresent()) {
+                Product product = existingProduct.get();
+
                 response.setMessage("Product already exists");
-                response.setData(ProductMapper.toDto(existingProduct));
+                response.setData(ProductMapper.toDto(product));
             } else {
                 Product savedProduct = productService.saveProduct(ProductMapper.toDocument(request));
 

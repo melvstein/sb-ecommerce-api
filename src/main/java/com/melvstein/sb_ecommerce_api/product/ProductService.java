@@ -36,7 +36,7 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public Product getProductBySku(String sku) {
+    public Optional<Product> getProductBySku(String sku) {
         return productRepository.findBySku(sku);
     }
 

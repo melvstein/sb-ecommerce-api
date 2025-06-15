@@ -34,20 +34,20 @@ public final class ProductMapper {
         return products.stream().map(ProductMapper::toDto).toList();
     }
 
-    public static Product toDocument(ProductDto dto) {
-        if (dto == null) return null;
+    public static Product toDocument(ProductDto productDto) {
+        if (productDto == null) return null;
 
         return Product.builder()
-                .id(dto.id())
-                .sku(dto.sku())
-                .name(dto.name())
-                .description(dto.description())
-                .price(dto.price())
-                .stock(dto.stock())
-                .tags(dto.tags())
-                .images(dto.images())
-                .createdAt(dto.createdAt().toInstant())
-                .updatedAt(dto.updatedAt().toInstant())
+                .id(productDto.id())
+                .sku(productDto.sku())
+                .name(productDto.name())
+                .description(productDto.description())
+                .price(productDto.price())
+                .stock(productDto.stock())
+                .tags(productDto.tags())
+                .images(productDto.images())
+                .createdAt(productDto.createdAt().toInstant())
+                .updatedAt(productDto.updatedAt().toInstant())
                 .build();
     }
 
