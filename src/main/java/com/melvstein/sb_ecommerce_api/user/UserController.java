@@ -2,7 +2,7 @@ package com.melvstein.sb_ecommerce_api.user;
 
 import com.melvstein.sb_ecommerce_api.controller.BaseController;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
-import com.melvstein.sb_ecommerce_api.product.ProductDto;
+import com.melvstein.sb_ecommerce_api.exception.ApiException;
 import com.melvstein.sb_ecommerce_api.security.JwtService;
 import com.melvstein.sb_ecommerce_api.util.Utils;
 import jakarta.validation.Valid;
@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -35,6 +32,7 @@ public class UserController extends BaseController {
             Pageable pageable
     ) {
         ApiResponse<PagedModel<EntityModel<UserDto>>> response = ApiResponse.<PagedModel<EntityModel<UserDto>>>builder()
+                .code(ResponseCode.GENERAL_ERROR.getCode())
                 .message("Failed to get all users")
                 .build();
 
@@ -53,6 +51,7 @@ public class UserController extends BaseController {
                     userPagedModel.getLinks()
             );
 
+            response.setCode(ResponseCode.SUCCESS.getCode());
             response.setMessage("Fetched all users successfully");
             response.setData(userDtoPagedModel);
 
@@ -65,6 +64,7 @@ public class UserController extends BaseController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDto>> userRegister(@RequestBody @Valid RegisterRequest request) {
         ApiResponse<UserDto> response = ApiResponse.<UserDto>builder()
+                .code(ResponseCode.GENERAL_ERROR.getCode())
                 .message("Failed to register user")
                 .data(null)
                 .build();
@@ -75,6 +75,12 @@ public class UserController extends BaseController {
             if (userAlreadyExists) {
                 response.setMessage("User Already Exists");
             } else {
+                if (!request.role().isBlank()) {
+                    if (!Role.isValid(request.role())) {
+                        throw new ApiException("123", "Invalid role", HttpStatus.BAD_REQUEST);
+                    }
+                }
+
                 User userRegister = User.builder()
                         .role(request.role())
                         .email(request.email())
@@ -89,6 +95,16 @@ public class UserController extends BaseController {
             }
 
             return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            response.setMessage(e.getMessage());
+
+            log.error("{} - APIEXCEPTION - code={} message={} status={}", Utils.getClassAndMethod(), e.getCode(), e.getMessage(), e.getStatus());
+
+            log.error("{} - Failed to register user - error={}", Utils.getClassAndMethod(), response.getMessage());
+
+            return ResponseEntity
+                    .status(e.getStatus())
+                    .body(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
 
