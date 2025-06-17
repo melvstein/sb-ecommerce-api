@@ -1,5 +1,6 @@
 package com.melvstein.sb_ecommerce_api.user;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melvstein.sb_ecommerce_api.controller.BaseController;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
 import com.melvstein.sb_ecommerce_api.exception.ApiException;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -28,49 +30,7 @@ import java.util.*;
 public class UserController extends BaseController {
     private final UserService userService;
     private final JwtService jwtService;
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<PagedModel<EntityModel<UserDto>>>> getAllUsers(
-            @RequestParam(value = "filter", required = false) List<String> filter,
-            Pageable pageable
-    ) {
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-
-        ApiResponse<PagedModel<EntityModel<UserDto>>> response = ApiResponse.<PagedModel<EntityModel<UserDto>>>builder()
-                .code(ApiResponseCode.ERROR.getCode())
-                .message("Failed to get all users")
-                .build();
-
-        try {
-            PagedModel<EntityModel<User>> userPagedModel = userService.getAllUsers(filter, pageable);
-
-            List<EntityModel<UserDto>> userDtoContent = userPagedModel.getContent().stream().map(entityModel -> {
-                assert entityModel.getContent() != null;
-                UserDto userDto =  UserMapper.toDto(entityModel.getContent());
-                return EntityModel.of(userDto);
-            }).toList();
-
-            PagedModel<EntityModel<UserDto>> userDtoPagedModel = PagedModel.of(
-                    userDtoContent,
-                    userPagedModel.getMetadata(),
-                    userPagedModel.getLinks()
-            );
-
-            response.setCode(ApiResponseCode.SUCCESS.getCode());
-            response.setMessage("Fetched all users successfully");
-            response.setData(userDtoPagedModel);
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.setMessage(e.getMessage());
-        }
-
-        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
-
-        return ResponseEntity
-                .status(httpStatus)
-                .body(response);
-    }
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDto>> userRegister(@RequestBody @Valid RegisterRequest request) {
@@ -188,6 +148,141 @@ public class UserController extends BaseController {
         } catch (BadCredentialsException e) {
             httpStatus = HttpStatus.UNAUTHORIZED;
             response.setMessage("Invalid username or password");
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedModel<EntityModel<UserDto>>>> getAllUsers(
+            @RequestParam(value = "filter", required = false) List<String> filter,
+            Pageable pageable
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<PagedModel<EntityModel<UserDto>>> response = ApiResponse.<PagedModel<EntityModel<UserDto>>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to get all users")
+                .build();
+
+        try {
+            PagedModel<EntityModel<User>> userPagedModel = userService.getAllUsers(filter, pageable);
+
+            List<EntityModel<UserDto>> userDtoContent = userPagedModel.getContent().stream().map(entityModel -> {
+                assert entityModel.getContent() != null;
+                UserDto userDto =  UserMapper.toDto(entityModel.getContent());
+                return EntityModel.of(userDto);
+            }).toList();
+
+            PagedModel<EntityModel<UserDto>> userDtoPagedModel = PagedModel.of(
+                    userDtoContent,
+                    userPagedModel.getMetadata(),
+                    userPagedModel.getLinks()
+            );
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Fetched all users successfully");
+            response.setData(userDtoPagedModel);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable String id, @RequestBody Map<String, Object> request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<UserDto> response = ApiResponse.<UserDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to update user details")
+                .data(null)
+                .build();
+
+        try {
+            Optional<User> existingUser = userService.getUserById(id);
+
+            if (existingUser.isEmpty()) {
+                throw new ApiException(
+                        UserResponseCode.USER_NOT_FOUND.getCode(),
+                        UserResponseCode.USER_NOT_FOUND.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+
+            User user = existingUser.get();
+
+            request.forEach((key, value) -> {
+                switch (key) {
+                    case "role":
+                        if (value instanceof String) {
+                            user.setRole((String) value);
+                        }
+                        break;
+                    case "email":
+                        if (value instanceof String) {
+                            user.setEmail((String) value);
+                        }
+                        break;
+                    case "username":
+                        if (value instanceof String) {
+                            user.setUsername((String) value);
+                        }
+                        break;
+                    case "password":
+                        if (value instanceof String) {
+                            user.setPassword((String) value);
+                        }
+                        break;
+                    case "profileImageUrl":
+                        if (value instanceof String) {
+                            user.setProfileImageUrl((String) value);
+                        }
+                        break;
+                    case "isActive":
+                        if (value instanceof Boolean) {
+                            user.setActive((Boolean) value);
+                        }
+                        break;
+                    case "isVerified":
+                        if (value instanceof Boolean) {
+                            user.setVerified((Boolean) value);
+                        }
+                    case "lastLoginAt":
+                        if (value instanceof Date) {
+                            log.info("lastLoginAt Date {}", value);
+                            user.setLastLoginAt(((Date) value).toInstant());
+                        } else if (value instanceof String) {
+                            log.info("lastLoginAt String {}", value);
+                            user.setLastLoginAt(Utils.fromDateStringToInstant((String) value));
+                        }
+                        break;
+                    default:
+                        log.warn("{} - Ignore unknown field key={} value={}", Utils.getClassAndMethod(), key, value);
+                        break;
+                }
+            });
+
+            User savedUser = userService.saveUser(user);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("User details updated successfully");
+            response.setData(UserMapper.toDto(savedUser));
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
         }

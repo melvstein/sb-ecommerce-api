@@ -16,19 +16,24 @@ services:
     depends_on:
       - sb-ecommerce-api-dev-mongodb
     networks:
-      - app-tier
+      - dev-app-tier
   sb-ecommerce-api-dev-mongodb:
     image: mongo:latest
     container_name: sb-ecommerce-api-dev-mongodb
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: ecommerce
     volumes:
       - sb-ecommerce-api-mongo-data:/data/db
     networks:
-      - app-tier
+      - dev-app-tier
 
 volumes:
   sb-ecommerce-api-mongo-data:
 
 networks:
-  app-tier:
+  dev-app-tier:
+    driver: bridge

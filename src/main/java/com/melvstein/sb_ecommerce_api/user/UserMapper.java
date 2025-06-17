@@ -16,7 +16,6 @@ public class UserMapper {
                 .lastLoginAt(Utils.fromInstantToDate(user.getLastLoginAt()))
                 .createdAt(Utils.fromInstantToDate(user.getCreatedAt()))
                 .updatedAt(Utils.fromInstantToDate(user.getUpdatedAt()))
-                .deletedAt(Utils.fromInstantToDate(user.getDeletedAt()))
                 .build();
     }
 
@@ -32,7 +31,6 @@ public class UserMapper {
                 .lastLoginAt(userDto.lastLoginAt().toInstant())
                 .createdAt(userDto.createdAt().toInstant())
                 .updatedAt(userDto.updatedAt().toInstant())
-                .deletedAt(userDto.deletedAt().toInstant())
                 .build();
     }
 }

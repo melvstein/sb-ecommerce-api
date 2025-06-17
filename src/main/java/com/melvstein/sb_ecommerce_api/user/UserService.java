@@ -1,5 +1,6 @@
 package com.melvstein.sb_ecommerce_api.user;
 
+import com.melvstein.sb_ecommerce_api.exception.ApiException;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -7,12 +8,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,6 +49,14 @@ public class UserService {
     }
 
     public User saveUser(User user) {
+        if (!Role.isValid(user.getRole())) {
+            throw new ApiException(
+                    UserResponseCode.INVALID_ROLE.getCode(),
+                    UserResponseCode.INVALID_ROLE.getMessage() + " '" + user.getRole() + "'; must be in " + Arrays.toString(Role.values()).toLowerCase(),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
         user.setRole(user.getRole().toLowerCase());
         user.setPassword(encoder.encode(user.getPassword()));
         return userRepository.save(user);

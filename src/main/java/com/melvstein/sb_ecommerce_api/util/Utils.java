@@ -4,9 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -73,6 +71,14 @@ public class Utils {
         if (instant == null) return null;
 
         return Date.from(instant);
+    }
+
+    public static Instant fromDateStringToInstant(String dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneOffset.UTC);
+
+        return LocalDateTime.parse(dateTime, formatter)
+                .toInstant(ZoneOffset.UTC);
     }
 
     public static PasswordEncoder passwordEncoder() {

@@ -19,8 +19,7 @@ public record UserDto(
         boolean isVerified,
         Date lastLoginAt,
         Date createdAt,
-        Date updatedAt,
-        Date deletedAt
+        Date updatedAt
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

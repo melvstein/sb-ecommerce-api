@@ -162,20 +162,16 @@ public class ProductController extends BaseController {
                         break;
                     case "stock":
                         if (value instanceof Integer) {
-                            product.setStock((int) value);
+                            product.setStock((Integer) value);
                         }
                         break;
                     case "tags":
-                        if (value instanceof List<?>) {
-                            List<?> rawTags = new ArrayList<>((List<?>) value);
+                        if (value instanceof List<?> rawTags && rawTags.stream().allMatch(elem -> elem instanceof String)) {
+                            List<String> tags = rawTags.stream()
+                                    .map(elem -> (String) elem)
+                                    .toList();
 
-                            if (rawTags.stream().allMatch(elem -> elem instanceof String)) {
-                                List<String> tags = rawTags.stream()
-                                        .map(elem -> (String) elem)
-                                        .toList();
-
-                                product.setTags(tags);
-                            }
+                            product.setTags(tags);
                         }
                         break;
                     default:
