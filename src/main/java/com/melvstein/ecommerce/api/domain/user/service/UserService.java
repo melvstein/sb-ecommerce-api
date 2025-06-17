@@ -41,15 +41,15 @@ public class UserService {
         return userPagedResourcesAssembler.toModel(userPage);
     }
 
-    public Optional<User> findUserById(String id) {
+    public Optional<User> fetchUserById(String id) {
         return userRepository.findById(id);
     }
 
-    public Optional<User> findUserByEmail(String email) {
+    public Optional<User> fetchUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findUserByUsername(String username) {
+    public Optional<User> fetchUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 

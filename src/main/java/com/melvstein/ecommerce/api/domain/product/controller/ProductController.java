@@ -82,7 +82,7 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductDto>> findProductById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<ProductDto>> fetchProductById(@PathVariable String id) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
@@ -92,7 +92,7 @@ public class ProductController extends BaseController {
                 .build();
 
         try {
-            Optional<Product> existingProduct = productService.findProductById(id);
+            Optional<Product> existingProduct = productService.fetchProductById(id);
 
             if (existingProduct.isEmpty()) {
                 throw new ApiException(
@@ -135,7 +135,7 @@ public class ProductController extends BaseController {
                 .build();
 
         try {
-            Optional<Product> existingProduct = productService.findProductBySku(request.sku());
+            Optional<Product> existingProduct = productService.fetchProductBySku(request.sku());
 
             if (existingProduct.isPresent()) {
                 Product product = existingProduct.get();
@@ -174,7 +174,7 @@ public class ProductController extends BaseController {
                 .build();
 
         try {
-            Optional<Product> existingProduct = productService.findProductById(id);
+            Optional<Product> existingProduct = productService.fetchProductById(id);
 
             if (existingProduct.isEmpty()) {
                 throw new ApiException(
@@ -257,7 +257,7 @@ public class ProductController extends BaseController {
                 .build();
 
         try {
-            Optional<Product> existingProduct = productService.findProductById(id);
+            Optional<Product> existingProduct = productService.fetchProductById(id);
 
             if (existingProduct.isEmpty()) {
                 throw new ApiException(

@@ -28,6 +28,11 @@ public class UserToken {
 
     private String type;
 
+    private long timeout;
+
+    @Builder.Default
+    private boolean status = true;
+
     private Instant expiredAt;
 
     @CreatedDate

@@ -1,6 +1,9 @@
 package com.melvstein.ecommerce.api.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.melvstein.ecommerce.api.domain.security.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.mapper.UserTokenMapper;
+import com.melvstein.ecommerce.api.domain.security.service.UserTokenService;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.mapper.UserMapper;
@@ -36,6 +39,7 @@ public class UserController extends BaseController {
     private final UserService userService;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+    private final UserTokenService userTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDto>> userRegister(@RequestBody @Valid RegisterRequestDto request) {
@@ -121,7 +125,7 @@ public class UserController extends BaseController {
                 );
             }
 
-            Optional<User> loggedInUser = userService.findUserByUsername(request.username());
+            Optional<User> loggedInUser = userService.fetchUserByUsername(request.username());
 
             if (loggedInUser.isEmpty()) {
                 throw new ApiException(
@@ -141,8 +145,20 @@ public class UserController extends BaseController {
 
             String token = jwtService.generateToken(request.username(), extraClaims);
 
-            Map<String, String> data = new HashMap<>();
-            data.put("token", token);
+            UserToken saveToken = UserToken.builder()
+                    .token(token)
+                    .userId(user.getId())
+                    .type("jwt")
+                    .timeout(jwtService.getExpirationTimeSeconds())
+                    .expiredAt(jwtService.extractExpiration(token).toInstant())
+                    .build();
+
+            UserToken userToken = userTokenService.saveToken(saveToken);
+
+            // add checking of available token
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("userToken", UserTokenMapper.toDto(userToken));
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User logged in successfully");
@@ -211,7 +227,7 @@ public class UserController extends BaseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserDto>> findUserById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<UserDto>> fetchUserById(@PathVariable String id) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ApiResponse<UserDto> response = ApiResponse.<UserDto>builder()
@@ -221,7 +237,7 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.findUserById(id);
+            Optional<User> existingUser = userService.fetchUserById(id);
 
             if (existingUser.isEmpty()) {
                 throw new ApiException(
@@ -264,7 +280,7 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.findUserById(id);
+            Optional<User> existingUser = userService.fetchUserById(id);
 
             if (existingUser.isEmpty()) {
                 throw new ApiException(
@@ -360,7 +376,7 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.findUserById(id);
+            Optional<User> existingUser = userService.fetchUserById(id);
 
             if (existingUser.isEmpty()) {
                 throw new ApiException(

@@ -33,11 +33,11 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Optional<Product> findProductById(String id) {
+    public Optional<Product> fetchProductById(String id) {
         return productRepository.findById(id);
     }
 
-    public Optional<Product> findProductBySku(String sku) {
+    public Optional<Product> fetchProductBySku(String sku) {
         return productRepository.findBySku(sku);
     }
 

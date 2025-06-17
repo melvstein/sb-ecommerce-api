@@ -33,6 +33,10 @@ public class JwtService {
         return (long) expirationMinutes * 60 * 1000;
     }
 
+    public long getExpirationTimeSeconds() {
+        return (long) expirationMinutes * 60;
+    }
+
     public String generateToken(String username, Map<String, Object> extraClaims) {
         return Jwts.builder()
                 .claims(extraClaims)
