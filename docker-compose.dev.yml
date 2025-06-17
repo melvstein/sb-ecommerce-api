@@ -1,9 +1,9 @@
 services:
-  sb-ecommerce-api-app:
+  sb-ecommerce-api-dev-app:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: sb-ecommerce-api-app-dev
+    container_name: sb-ecommerce-api-dev-app
     working_dir: /app
     command: gradle bootRun --no-daemon
     ports:

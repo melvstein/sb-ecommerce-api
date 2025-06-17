@@ -33,6 +33,10 @@ public class UserService {
         return userPagedResourcesAssembler.toModel(userPage);
     }
 
+    public Optional<User> getUserById(String id) {
+        return userRepository.findById(id);
+    }
+
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }

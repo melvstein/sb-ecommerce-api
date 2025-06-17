@@ -2,17 +2,19 @@ package com.melvstein.sb_ecommerce_api.controller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
+import com.melvstein.sb_ecommerce_api.util.ApiResponseCode;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RestControllerAdvice
 public class BaseController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -24,13 +26,15 @@ public class BaseController {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .orElse("Bad Request");
 
+        ApiResponse<Map<String, Object>> response = ApiResponse.<Map<String, Object>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message(message)
+                .data(null)
+                .build();
+
         return ResponseEntity
                 .badRequest()
-                .body(ApiResponse.<Map<String, Object>>builder()
-                        .message(message)
-                        .data(null)
-                        .build()
-                );
+                .body(response);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -52,11 +56,14 @@ public class BaseController {
             }
         }
 
+        ApiResponse<Map<String, Object>> response = ApiResponse.<Map<String, Object>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message(customMessage)
+                .data(null)
+                .build();
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.<Map<String, Object>>builder()
-                        .message(customMessage)
-                        .data(null)
-                        .build());
+                .body(response);
     }
 }

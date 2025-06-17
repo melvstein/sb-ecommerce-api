@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melvstein.sb_ecommerce_api.controller.BaseController;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
+import com.melvstein.sb_ecommerce_api.exception.ApiException;
+import com.melvstein.sb_ecommerce_api.util.ApiResponseCode;
 import com.melvstein.sb_ecommerce_api.util.Utils;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -37,7 +39,10 @@ public class ProductController extends BaseController {
             @RequestParam(value = "filter", required = false) List<String> filter,
             Pageable pageable
     ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
         ApiResponse<PagedModel<EntityModel<ProductDto>>> response = ApiResponse.<PagedModel<EntityModel<ProductDto>>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
                 .message("Failed to fetch all products")
                 .data(null)
                 .build();
@@ -59,23 +64,29 @@ public class ProductController extends BaseController {
                     productPagedModel.getLinks()
             );
 
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Fetched all products successfully");
             response.setData(productDtoPagedModel);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
-
-            log.error("{} - Failed to fetch all products - {}", Utils.getClassAndMethod(), response.getMessage());
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
     }
 
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@RequestBody @Valid ProductRequest request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
         ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
                 .message("Failed to save product")
                 .data(null)
                 .build();
@@ -95,21 +106,26 @@ public class ProductController extends BaseController {
                 response.setData(ProductMapper.toDto(savedProduct));
             }
 
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
-
-            log.error("{} - Failed to save product - {}", Utils.getClassAndMethod(), response.getMessage());
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(response);
         }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@PathVariable String id, @RequestBody Map<String, Object> request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
         ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
                 .message("Failed to update product")
                 .data(null)
                 .build();
@@ -118,13 +134,11 @@ public class ProductController extends BaseController {
             Optional<Product> existingProduct = productService.getProductById(id);
 
             if (existingProduct.isEmpty()) {
-                log.warn("{} - Planet not found - id={}", Utils.getClassAndMethod(), id);
-
-                response.setMessage("Product not found");
-
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(response);
+                throw new ApiException(
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
             }
 
             Product product = existingProduct.get();
@@ -153,10 +167,14 @@ public class ProductController extends BaseController {
                         break;
                     case "tags":
                         if (value instanceof List<?>) {
-                            List<?> tags = (List<?>) value;
+                            List<?> rawTags = new ArrayList<>((List<?>) value);
 
-                            if (tags.stream().allMatch(elem -> elem instanceof String)) {
-                                product.setTags((List<String>) tags);
+                            if (rawTags.stream().allMatch(elem -> elem instanceof String)) {
+                                List<String> tags = rawTags.stream()
+                                        .map(elem -> (String) elem)
+                                        .toList();
+
+                                product.setTags(tags);
                             }
                         }
                         break;
@@ -169,24 +187,28 @@ public class ProductController extends BaseController {
             Product savedProduct = productService.saveProduct(product);
             ProductDto productDto = ProductMapper.toDto(savedProduct);
 
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Product updated successfully");
             response.setData(productDto);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
-
-            log.error("{} - Failed to update product - {}", Utils.getClassAndMethod(), response.getMessage());
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(response);
         }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDto>> deleteProductBySku(@PathVariable String id) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
         ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
                 .message("Failed to delete product")
                 .data(null)
                 .build();
@@ -195,11 +217,11 @@ public class ProductController extends BaseController {
             Optional<Product> existingProduct = productService.getProductById(id);
 
             if (existingProduct.isEmpty()) {
-                response.setMessage("Product not found");
-
-                return ResponseEntity
-                        .status(HttpStatus.NOT_FOUND)
-                        .body(response);
+                throw new ApiException(
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
             }
 
             Product product = existingProduct.get();
@@ -207,18 +229,19 @@ public class ProductController extends BaseController {
 
             productService.deleteProductById(id);
 
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Product deleted successfully");
             response.setData(productDto);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.setMessage(e.getMessage());
-
-            log.error("{} - Failed to delete product - {}", Utils.getClassAndMethod(), response.getMessage());
-
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(response);
         }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
     }
 }

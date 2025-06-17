@@ -2,6 +2,7 @@ package com.melvstein.sb_ecommerce_api.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melvstein.sb_ecommerce_api.dto.ApiResponse;
+import com.melvstein.sb_ecommerce_api.util.ApiResponseCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,6 +26,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
         ApiResponse<?> data = ApiResponse.builder()
+                .code(ApiResponseCode.ERROR.getCode())
                 .message(authException.getMessage())
                 .data(null)
                 .build();
