@@ -33,8 +33,13 @@ public class User {
 
     private String password;
     private String profileImageUrl;
-    private boolean isActive;
-    private boolean isVerified;
+
+    @Builder.Default
+    private boolean isActive = true;
+
+    @Builder.Default
+    private boolean isVerified = false;
+
     private Instant lastLoginAt;
 
     @CreatedDate

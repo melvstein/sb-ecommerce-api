@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.security.dto;
+package com.melvstein.ecommerce.api.domain.security.token.dto;
 
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
@@ -13,7 +13,7 @@ public record UserTokenDto(
         String userId,
         String type,
         long timeout,
-        boolean status,
+        boolean isAvailable,
         Date expiredAt,
         Date createdAt,
         Date updatedAt

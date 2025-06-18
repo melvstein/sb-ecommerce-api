@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.security.document;
+package com.melvstein.ecommerce.api.domain.security.token.document;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
@@ -31,7 +31,7 @@ public class UserToken {
     private long timeout;
 
     @Builder.Default
-    private boolean status = true;
+    private boolean isAvailable = true;
 
     private Instant expiredAt;
 

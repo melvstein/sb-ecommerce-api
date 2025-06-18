@@ -1,9 +1,9 @@
 package com.melvstein.ecommerce.api.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.melvstein.ecommerce.api.domain.security.document.UserToken;
-import com.melvstein.ecommerce.api.domain.security.mapper.UserTokenMapper;
-import com.melvstein.ecommerce.api.domain.security.service.UserTokenService;
+import com.melvstein.ecommerce.api.domain.security.token.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.token.mapper.UserTokenMapper;
+import com.melvstein.ecommerce.api.domain.security.token.service.UserTokenService;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.mapper.UserMapper;
@@ -137,28 +137,38 @@ public class UserController extends BaseController {
 
             User user = loggedInUser.get();
 
-            Map<String, Object> extraClaims = new HashMap<>();
-            extraClaims.put("userId", user.getId());
-            extraClaims.put("role", user.getRole());
-            extraClaims.put("email", user.getEmail());
-            extraClaims.put("username", user.getUsername());
+            if (!user.isActive()) {
+                throw new ApiException(
+                        UserResponseCode.USER_ACCESS_DENIED.getCode(),
+                        "User is not active",
+                        HttpStatus.FORBIDDEN
+                );
+            }
 
-            String token = jwtService.generateToken(request.username(), extraClaims);
+            Optional<UserToken> userToken = userTokenService.getAvailableTokenDetailsByUserId(user.getId());
 
-            UserToken saveToken = UserToken.builder()
-                    .token(token)
-                    .userId(user.getId())
-                    .type("jwt")
-                    .timeout(jwtService.getExpirationTimeSeconds())
-                    .expiredAt(jwtService.extractExpiration(token).toInstant())
-                    .build();
+            if (userToken.isEmpty()) {
+                Map<String, Object> extraClaims = new HashMap<>();
+                extraClaims.put("userId", user.getId());
+                extraClaims.put("role", user.getRole());
+                extraClaims.put("email", user.getEmail());
+                extraClaims.put("username", user.getUsername());
 
-            UserToken userToken = userTokenService.saveToken(saveToken);
+                String token = jwtService.generateToken(request.username(), extraClaims);
 
-            // add checking of available token
+                UserToken saveToken = UserToken.builder()
+                        .token(token)
+                        .userId(user.getId())
+                        .type("jwt")
+                        .timeout(jwtService.getExpirationTimeSeconds())
+                        .expiredAt(jwtService.extractExpiration(token).toInstant())
+                        .build();
+
+                userToken = Optional.of(userTokenService.saveToken(saveToken));
+            }
 
             Map<String, Object> data = new HashMap<>();
-            data.put("userToken", UserTokenMapper.toDto(userToken));
+            data.put("userToken", UserTokenMapper.toDto(userToken.get()));
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User logged in successfully");

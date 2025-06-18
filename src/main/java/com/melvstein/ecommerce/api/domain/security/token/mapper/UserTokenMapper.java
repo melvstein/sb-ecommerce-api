@@ -1,8 +1,8 @@
-package com.melvstein.ecommerce.api.domain.security.mapper;
+package com.melvstein.ecommerce.api.domain.security.token.mapper;
 
 
-import com.melvstein.ecommerce.api.domain.security.document.UserToken;
-import com.melvstein.ecommerce.api.domain.security.dto.UserTokenDto;
+import com.melvstein.ecommerce.api.domain.security.token.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.token.dto.UserTokenDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
 public class UserTokenMapper {
@@ -14,7 +14,7 @@ public class UserTokenMapper {
                 .userId(userToken.getUserId())
                 .type(userToken.getType())
                 .timeout(userToken.getTimeout())
-                .status(userToken.isStatus())
+                .isAvailable(userToken.isAvailable())
                 .expiredAt(Utils.fromInstantToDate(userToken.getExpiredAt()))
                 .createdAt(Utils.fromInstantToDate(userToken.getCreatedAt()))
                 .updatedAt(Utils.fromInstantToDate(userToken.getUpdatedAt()))
@@ -28,7 +28,7 @@ public class UserTokenMapper {
                 .userId(userTokenDto.userId())
                 .type(userTokenDto.type())
                 .timeout(userTokenDto.timeout())
-                .status(userTokenDto.status())
+                .isAvailable(userTokenDto.isAvailable())
                 .expiredAt(userTokenDto.expiredAt().toInstant())
                 .createdAt(userTokenDto.createdAt().toInstant())
                 .updatedAt(userTokenDto.updatedAt().toInstant())
