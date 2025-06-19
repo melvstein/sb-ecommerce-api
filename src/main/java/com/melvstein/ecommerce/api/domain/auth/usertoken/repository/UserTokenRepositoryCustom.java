@@ -1,6 +1,6 @@
-package com.melvstein.ecommerce.api.domain.security.token.repository;
+package com.melvstein.ecommerce.api.domain.auth.usertoken.repository;
 
-import com.melvstein.ecommerce.api.domain.security.token.document.UserToken;
+import com.melvstein.ecommerce.api.domain.auth.usertoken.document.UserToken;
 
 import java.util.Optional;
 

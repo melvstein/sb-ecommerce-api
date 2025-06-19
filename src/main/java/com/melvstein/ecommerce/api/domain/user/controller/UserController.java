@@ -1,9 +1,12 @@
 package com.melvstein.ecommerce.api.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.melvstein.ecommerce.api.domain.security.token.document.UserToken;
-import com.melvstein.ecommerce.api.domain.security.token.mapper.UserTokenMapper;
-import com.melvstein.ecommerce.api.domain.security.token.service.UserTokenService;
+import com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto.RefreshTokenRequestDto;
+import com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto.RefreshTokenResponseDto;
+import com.melvstein.ecommerce.api.domain.auth.refreshtoken.service.RefreshTokenService;
+import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.auth.usertoken.service.UserTokenService;
+import com.melvstein.ecommerce.api.domain.user.dto.LoginResponseDto;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.mapper.UserMapper;
@@ -29,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -40,6 +44,7 @@ public class UserController extends BaseController {
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
     private final UserTokenService userTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDto>> userRegister(@RequestBody @Valid RegisterRequestDto request) {
@@ -107,10 +112,10 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Object>> userLogin(@RequestBody @Valid LoginRequestDto request) {
+    public ResponseEntity<ApiResponse<LoginResponseDto>> userLogin(@RequestBody @Valid LoginRequestDto request) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        ApiResponse<Object> response = ApiResponse.<Object>builder()
+        ApiResponse<LoginResponseDto> response = ApiResponse.<LoginResponseDto>builder()
                 .code(ApiResponseCode.ERROR.getCode())
                 .message("Failed to login user")
                 .data(null)
@@ -125,17 +130,13 @@ public class UserController extends BaseController {
                 );
             }
 
-            Optional<User> loggedInUser = userService.fetchUserByUsername(request.username());
-
-            if (loggedInUser.isEmpty()) {
-                throw new ApiException(
-                        UserResponseCode.USER_NOT_FOUND.getCode(),
-                        UserResponseCode.USER_NOT_FOUND.getMessage(),
-                        HttpStatus.NOT_FOUND
-                );
-            }
-
-            User user = loggedInUser.get();
+            User user = userService
+                    .fetchUserByUsername(request.username())
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
 
             if (!user.isActive()) {
                 throw new ApiException(
@@ -145,30 +146,20 @@ public class UserController extends BaseController {
                 );
             }
 
-            Optional<UserToken> userToken = userTokenService.getAvailableTokenDetailsByUserId(user.getId());
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("userId", user.getId());
 
-            if (userToken.isEmpty()) {
-                Map<String, Object> extraClaims = new HashMap<>();
-                extraClaims.put("userId", user.getId());
-                extraClaims.put("role", user.getRole());
-                extraClaims.put("email", user.getEmail());
-                extraClaims.put("username", user.getUsername());
+            String accessToken = jwtService.generateToken(request.username(), extraClaims);
+            /*UserToken userToken = userTokenService.generatedUserToken(user.getId(), accessToken);
+            UserToken savedToken = userTokenService.saveUserToken(userToken);*/
 
-                String token = jwtService.generateToken(request.username(), extraClaims);
+            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user.getId());
+            RefreshToken savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken);
 
-                UserToken saveToken = UserToken.builder()
-                        .token(token)
-                        .userId(user.getId())
-                        .type("jwt")
-                        .timeout(jwtService.getExpirationTimeSeconds())
-                        .expiredAt(jwtService.extractExpiration(token).toInstant())
-                        .build();
-
-                userToken = Optional.of(userTokenService.saveToken(saveToken));
-            }
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("userToken", UserTokenMapper.toDto(userToken.get()));
+            LoginResponseDto data = LoginResponseDto.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(savedRefreshToken.getToken())
+                    .build();
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User logged in successfully");
@@ -191,6 +182,86 @@ public class UserController extends BaseController {
         return ResponseEntity
                 .status(httpStatus)
                 .body(response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> refreshToken(@RequestBody @Valid RefreshTokenRequestDto request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<RefreshTokenResponseDto> response = ApiResponse.<RefreshTokenResponseDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to refresh token")
+                .data(null)
+                .build();
+
+        try {
+            RefreshToken oldRefreshToken = refreshTokenService
+                    .fetchRefreshTokenDetails(request.refreshToken())
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.INVALID_REFRESH_TOKEN.getCode(),
+                            UserResponseCode.INVALID_REFRESH_TOKEN.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            if (oldRefreshToken.getExpiredAt().isBefore(Instant.now())) {
+                refreshTokenService.deleteToken(oldRefreshToken.getToken());
+
+                throw new ApiException(
+                        UserResponseCode.REFRESH_TOKEN_EXPIRED.getCode(),
+                        UserResponseCode.REFRESH_TOKEN_EXPIRED.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+
+            if (!oldRefreshToken.getUserId().equals(request.userId())) {
+                throw new ApiException(
+                        UserResponseCode.USER_NOT_FOUND.getCode(),
+                        UserResponseCode.USER_NOT_FOUND.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+
+            User user = userService
+                    .fetchUserById(request.userId())
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("userId", user.getId());
+
+            String accessToken = jwtService.generateToken(user.getUsername(), extraClaims);
+
+            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user.getId());
+            RefreshToken savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken);
+            refreshTokenService.deleteToken(oldRefreshToken.getToken());
+
+            RefreshTokenResponseDto data = RefreshTokenResponseDto.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(savedRefreshToken.getToken())
+                    .build();
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Refreshed token successfully");
+            response.setData(data);
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+
     }
 
     @GetMapping
@@ -247,17 +318,13 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.fetchUserById(id);
-
-            if (existingUser.isEmpty()) {
-                throw new ApiException(
-                        UserResponseCode.USER_NOT_FOUND.getCode(),
-                        UserResponseCode.USER_NOT_FOUND.getMessage(),
-                        HttpStatus.NOT_FOUND
-                );
-            }
-
-            User user = existingUser.get();
+            User user = userService
+                    .fetchUserById(id)
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Fetched user details successfully");
@@ -290,17 +357,13 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.fetchUserById(id);
-
-            if (existingUser.isEmpty()) {
-                throw new ApiException(
-                        UserResponseCode.USER_NOT_FOUND.getCode(),
-                        UserResponseCode.USER_NOT_FOUND.getMessage(),
-                        HttpStatus.NOT_FOUND
-                );
-            }
-
-            User user = existingUser.get();
+            User user = userService
+                    .fetchUserById(id)
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
 
             request.forEach((key, value) -> {
                 switch (key) {
@@ -386,17 +449,14 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            Optional<User> existingUser = userService.fetchUserById(id);
+            User user = userService
+                    .fetchUserById(id)
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
 
-            if (existingUser.isEmpty()) {
-                throw new ApiException(
-                        UserResponseCode.USER_NOT_FOUND.getCode(),
-                        UserResponseCode.USER_NOT_FOUND.getMessage(),
-                        HttpStatus.NOT_FOUND
-                );
-            }
-
-            User user = existingUser.get();
             userService.deleteUserById(user.getId());
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());

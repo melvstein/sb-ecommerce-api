@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.security.token.document;
+package com.melvstein.ecommerce.api.domain.auth.usertoken.document;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;

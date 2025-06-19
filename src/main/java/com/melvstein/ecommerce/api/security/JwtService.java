@@ -17,24 +17,24 @@ public class JwtService {
 
     private SecretKey secretKey;
 
-    @Value("${jwt.secret}")
-    private String secret;
+    @Value("${app.security.jwt.secret-key}")
+    private String appSecretKey;
 
-    @Value("${jwt.expiration.minutes}")
-    private int expirationMinutes;
+    @Value("${app.security.jwt.timeout}")
+    private long timeout;
 
     @PostConstruct
     public void init() {
         // Create key from string (for HMAC algorithms like HS256)
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        this.secretKey = Keys.hmacShaKeyFor(appSecretKey.getBytes());
     }
 
     public long getExpirationTimeMs() {
-        return (long) expirationMinutes * 60 * 1000;
+        return timeout * 1000L;
     }
 
     public long getExpirationTimeSeconds() {
-        return (long) expirationMinutes * 60;
+        return timeout;
     }
 
     public String generateToken(String username, Map<String, Object> extraClaims) {

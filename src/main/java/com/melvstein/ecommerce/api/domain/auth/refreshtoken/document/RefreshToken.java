@@ -1,7 +1,5 @@
-package com.melvstein.ecommerce.api.domain.user.document;
+package com.melvstein.ecommerce.api.domain.auth.refreshtoken.document;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,37 +10,23 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-@Document(collection = "users")
+@Document(collection = "refresh_tokens")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Jacksonized
-public class User {
+public class RefreshToken {
     @Id
     private String id;
 
-    @NotBlank
-    private String role;
-
-    @Email
     @Indexed(unique = true)
-    private String email;
+    private String token;
 
-    @Indexed(unique = true)
-    private String username;
-
-    private String password;
-    private String profileImageUrl;
-
-    @Builder.Default
-    private boolean isActive = true;
-
-    @Builder.Default
-    private boolean isVerified = false;
-
-    private Instant lastLoginAt;
+    private String userId;
+    private long timeout;
+    private Instant expiredAt;
 
     @CreatedDate
     private Instant createdAt;
