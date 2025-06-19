@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto;
+package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto;
 
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;

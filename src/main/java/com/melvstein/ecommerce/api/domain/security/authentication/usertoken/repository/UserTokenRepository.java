@@ -1,6 +1,6 @@
-package com.melvstein.ecommerce.api.domain.auth.usertoken.repository;
+package com.melvstein.ecommerce.api.domain.security.authentication.usertoken.repository;
 
-import com.melvstein.ecommerce.api.domain.auth.usertoken.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.document.UserToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

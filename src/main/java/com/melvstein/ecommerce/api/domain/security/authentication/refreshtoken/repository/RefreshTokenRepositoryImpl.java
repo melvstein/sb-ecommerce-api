@@ -1,6 +1,6 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.repository;
+package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.repository;
 
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

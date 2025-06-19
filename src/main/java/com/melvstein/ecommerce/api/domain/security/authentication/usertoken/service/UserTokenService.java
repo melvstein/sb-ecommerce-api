@@ -1,7 +1,7 @@
-package com.melvstein.ecommerce.api.domain.auth.usertoken.service;
+package com.melvstein.ecommerce.api.domain.security.authentication.usertoken.service;
 
-import com.melvstein.ecommerce.api.domain.auth.usertoken.document.UserToken;
-import com.melvstein.ecommerce.api.domain.auth.usertoken.repository.UserTokenRepository;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.repository.UserTokenRepository;
 import com.melvstein.ecommerce.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

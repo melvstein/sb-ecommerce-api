@@ -1,8 +1,8 @@
-package com.melvstein.ecommerce.api.domain.auth.usertoken.mapper;
+package com.melvstein.ecommerce.api.domain.security.authentication.usertoken.mapper;
 
 
-import com.melvstein.ecommerce.api.domain.auth.usertoken.document.UserToken;
-import com.melvstein.ecommerce.api.domain.auth.usertoken.dto.UserTokenDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.document.UserToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.dto.UserTokenDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
 public class UserTokenMapper {

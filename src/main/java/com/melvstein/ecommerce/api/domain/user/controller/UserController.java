@@ -1,11 +1,11 @@
 package com.melvstein.ecommerce.api.domain.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto.RefreshTokenRequestDto;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto.RefreshTokenResponseDto;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.service.RefreshTokenService;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
-import com.melvstein.ecommerce.api.domain.auth.usertoken.service.UserTokenService;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenRequestDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenResponseDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.service.UserTokenService;
 import com.melvstein.ecommerce.api.domain.user.dto.LoginResponseDto;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;

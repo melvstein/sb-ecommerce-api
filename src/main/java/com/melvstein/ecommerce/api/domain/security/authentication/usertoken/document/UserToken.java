@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.document;
+package com.melvstein.ecommerce.api.domain.security.authentication.usertoken.document;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
@@ -10,14 +10,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-@Document(collection = "refresh_tokens")
+@Document(collection = "user_tokens")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Jacksonized
-public class RefreshToken {
+public class UserToken {
     @Id
     private String id;
 
@@ -25,7 +25,14 @@ public class RefreshToken {
     private String token;
 
     private String userId;
+
+    private String type;
+
     private long timeout;
+
+    @Builder.Default
+    private boolean isAvailable = true;
+
     private Instant expiredAt;
 
     @CreatedDate

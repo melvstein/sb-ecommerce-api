@@ -1,7 +1,7 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.service;
+package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service;
 
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.repository.RefreshTokenRepository;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

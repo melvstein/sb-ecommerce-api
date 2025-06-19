@@ -1,7 +1,7 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.mapper;
+package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.mapper;
 
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.dto.RefreshTokenDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
 public class RefreshTokenMapper {

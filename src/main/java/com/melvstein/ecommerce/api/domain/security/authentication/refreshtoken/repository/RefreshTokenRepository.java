@@ -1,6 +1,6 @@
-package com.melvstein.ecommerce.api.domain.auth.refreshtoken.repository;
+package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.repository;
 
-import com.melvstein.ecommerce.api.domain.auth.refreshtoken.document.RefreshToken;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
