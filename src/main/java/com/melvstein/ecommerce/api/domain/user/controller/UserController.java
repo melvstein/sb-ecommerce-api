@@ -200,7 +200,7 @@ public class UserController extends BaseController {
                     .orElseThrow(() -> new ApiException(
                             UserResponseCode.INVALID_REFRESH_TOKEN.getCode(),
                             UserResponseCode.INVALID_REFRESH_TOKEN.getMessage(),
-                            HttpStatus.NOT_FOUND
+                            HttpStatus.BAD_REQUEST
                     ));
 
             if (oldRefreshToken.getExpiredAt().isBefore(Instant.now())) {
@@ -209,7 +209,7 @@ public class UserController extends BaseController {
                 throw new ApiException(
                         UserResponseCode.REFRESH_TOKEN_EXPIRED.getCode(),
                         UserResponseCode.REFRESH_TOKEN_EXPIRED.getMessage(),
-                        HttpStatus.NOT_FOUND
+                        HttpStatus.UNAUTHORIZED
                 );
             }
 
@@ -263,6 +263,9 @@ public class UserController extends BaseController {
                 .body(response);
 
     }
+
+    // implement logout endpoint to delete user refresh token
+    // create authentication serviec and endpoint to check if user is authenticated
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedModel<EntityModel<UserDto>>>> getAllUsers(
