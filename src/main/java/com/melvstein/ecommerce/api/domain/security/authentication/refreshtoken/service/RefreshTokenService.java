@@ -2,6 +2,8 @@ package com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.
 
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.repository.RefreshTokenRepository;
+import com.melvstein.ecommerce.api.domain.user.document.User;
+import com.melvstein.ecommerce.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class RefreshTokenService {
     private long timeout;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtService jwtService;
 
     public Optional<RefreshToken> fetchRefreshTokenDetails(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -31,15 +34,19 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteByToken(token);
     }
 
+    public void deleteAllTokensByUserId(String userId) {
+        refreshTokenRepository.deleteAllByUserId(userId);
+    }
+
     public String generateToken() {
         return UUID.randomUUID().toString();
     }
 
-    public RefreshToken generatedRefreshToken(String userId) {
-        String token = generateToken();
+    public RefreshToken generatedRefreshToken(User user) {
+        String token = jwtService.generateRefreshToken(user.getUsername());
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
-                .userId(userId)
+                .userId(user.getId())
                 .timeout(timeout)
                 .expiredAt(Instant.now().plusSeconds(timeout))
                 .build();

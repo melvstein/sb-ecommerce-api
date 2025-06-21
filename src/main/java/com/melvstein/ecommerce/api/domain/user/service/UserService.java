@@ -6,6 +6,7 @@ import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
 import com.melvstein.ecommerce.api.domain.user.repository.UserRepository;
 import com.melvstein.ecommerce.api.shared.exception.ApiException;
+import com.melvstein.ecommerce.api.shared.util.Utils;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -30,7 +30,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PagedResourcesAssembler<User> userPagedResourcesAssembler;
     private final AuthenticationManager authenticationManager;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -63,7 +62,7 @@ public class UserService {
         }
 
         user.setRole(user.getRole().toLowerCase());
-        user.setPassword(encoder.encode(user.getPassword()));
+        user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -75,8 +74,14 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public boolean isAuthenticated(LoginRequestDto request) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.username(), request.password()));
-        return authentication.isAuthenticated();
+    public boolean isValidCredentials(LoginRequestDto request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.username(), request.password())
+            );
+            return authentication.isAuthenticated();
+        } catch (Exception ex) {
+            return false;
+        }
     }
 }

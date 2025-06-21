@@ -1,11 +1,9 @@
 package com.melvstein.ecommerce.api.domain.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenRequestDto;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenResponseDto;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
-import com.melvstein.ecommerce.api.domain.security.authentication.usertoken.service.UserTokenService;
 import com.melvstein.ecommerce.api.domain.user.dto.LoginResponseDto;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
@@ -42,8 +40,6 @@ import java.util.*;
 public class UserController extends BaseController {
     private final UserService userService;
     private final JwtService jwtService;
-    private final ObjectMapper objectMapper;
-    private final UserTokenService userTokenService;
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
@@ -122,7 +118,7 @@ public class UserController extends BaseController {
                 .build();
 
         try {
-            if (!userService.isAuthenticated(request)) {
+            if (!userService.isValidCredentials(request)) {
                 throw new ApiException(
                         UserResponseCode.USER_UNAUTHORIZED.getCode(),
                         "Invalid username and password",
@@ -149,11 +145,11 @@ public class UserController extends BaseController {
             Map<String, Object> extraClaims = new HashMap<>();
             extraClaims.put("userId", user.getId());
 
-            String accessToken = jwtService.generateToken(request.username(), extraClaims);
+            String accessToken = jwtService.generateAccessToken(request.username(), extraClaims);
             /*UserToken userToken = userTokenService.generatedUserToken(user.getId(), accessToken);
             UserToken savedToken = userTokenService.saveUserToken(userToken);*/
 
-            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user.getId());
+            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user);
             RefreshToken savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken);
 
             LoginResponseDto data = LoginResponseDto.builder()
@@ -232,9 +228,9 @@ public class UserController extends BaseController {
             Map<String, Object> extraClaims = new HashMap<>();
             extraClaims.put("userId", user.getId());
 
-            String accessToken = jwtService.generateToken(user.getUsername(), extraClaims);
+            String accessToken = jwtService.generateAccessToken(user.getUsername(), extraClaims);
 
-            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user.getId());
+            RefreshToken refreshToken = refreshTokenService.generatedRefreshToken(user);
             RefreshToken savedRefreshToken = refreshTokenService.saveRefreshToken(refreshToken);
             refreshTokenService.deleteToken(oldRefreshToken.getToken());
 
@@ -265,7 +261,8 @@ public class UserController extends BaseController {
     }
 
     // implement logout endpoint to delete user refresh token
-    // create authentication serviec and endpoint to check if user is authenticated
+    // create authentication service and ps
+    // endpoint to check if user is authenticated
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedModel<EntityModel<UserDto>>>> getAllUsers(

@@ -1,8 +1,6 @@
 package com.melvstein.ecommerce.api.shared.util;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -81,7 +79,7 @@ public class Utils {
                 .toInstant(ZoneOffset.UTC);
     }
 
-    public static PasswordEncoder passwordEncoder() {
+    public static BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

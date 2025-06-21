@@ -1,10 +1,13 @@
 package com.melvstein.ecommerce.api.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.melvstein.ecommerce.api.domain.user.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +19,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final AppUserDetailsService appUserDetailsService;
@@ -29,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
         final String username;
 
         String path = request.getRequestURI();
-        if (request.getMethod().equals("GET") && path.startsWith("/api/v1/planets")) {
+        if (request.getMethod().equals("GET") && path.startsWith("/api/v1/products")) {
             filterChain.doFilter(request, response);
             return;
         }
