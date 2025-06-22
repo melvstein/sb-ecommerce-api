@@ -1,12 +1,9 @@
 package com.melvstein.ecommerce.api.domain.security.authentication.controller;
 
-import com.melvstein.ecommerce.api.domain.security.authentication.dto.AuthenticationResponseDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.*;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
 import com.melvstein.ecommerce.api.domain.user.document.User;
-import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginRequestDto;
-import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginResponseDto;
-import com.melvstein.ecommerce.api.domain.security.authentication.dto.RegisterRequestDto;
 import com.melvstein.ecommerce.api.domain.user.dto.UserDto;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
@@ -254,6 +251,54 @@ public class AuthenticationController {
                     .build();
 
             response.setData(data);
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Object>> logout(@RequestBody() @Valid() LogoutRequestDto request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<Object> response = ApiResponse.<Object>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to logout user")
+                .data(null)
+                .build();
+
+        try {
+            User user = userService
+                    .fetchUserById(request.userId())
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            if (refreshTokenService.getAvailableToken(user.getId()).isEmpty()) {
+                throw new ApiException(
+                        ApiResponseCode.ERROR.getCode(),
+                        "No active refresh token found for user",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            refreshTokenService.deleteAllTokensByUserId(user.getId());
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("User logged out successfully");
 
             return ResponseEntity.ok(response);
         } catch (ApiException e) {

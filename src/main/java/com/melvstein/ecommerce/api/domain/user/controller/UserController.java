@@ -260,10 +260,6 @@ public class UserController extends BaseController {
 
     }
 
-    // implement logout endpoint to delete user refresh token
-    // create authentication service and ps
-    // endpoint to check if user is authenticated
-
     @GetMapping
     public ResponseEntity<ApiResponse<PagedModel<EntityModel<UserDto>>>> getAllUsers(
             @RequestParam(value = "filter", required = false) List<String> filter,

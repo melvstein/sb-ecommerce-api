@@ -6,6 +6,9 @@ import com.melvstein.ecommerce.api.domain.user.document.User;
 import com.melvstein.ecommerce.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,6 +24,7 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
+    private final MongoTemplate mongoTemplate;
 
     public Optional<RefreshToken> fetchRefreshTokenDetails(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -56,5 +60,14 @@ public class RefreshTokenService {
 
     public RefreshToken saveRefreshToken(RefreshToken refreshToken) {
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    public Optional<RefreshToken> getAvailableToken(String userId) {
+        Query query = new Query();
+        query.addCriteria(Criteria
+                .where("userId").is(userId)
+                .and("expiredAt").gt(Instant.now()));
+
+        return  Optional.ofNullable(mongoTemplate.findOne(query, RefreshToken.class));
     }
 }

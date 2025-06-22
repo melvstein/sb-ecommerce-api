@@ -1,7 +1,6 @@
 package com.melvstein.ecommerce.api.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.melvstein.ecommerce.api.domain.user.service.UserService;
+import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +22,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final AppUserDetailsService appUserDetailsService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -47,11 +47,15 @@ public class JwtFilter extends OncePerRequestFilter {
         username = jwtService.extractUsername(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = appUserDetailsService.loadUserByUsername(username);
+            UserPrincipal userDetails = appUserDetailsService.loadUserByUsername(username);
+
+            if (refreshTokenService.getAvailableToken(userDetails.getId()).isEmpty()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (jwtService.isTokenValid(token, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
