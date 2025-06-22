@@ -20,6 +20,7 @@ public record ProductDto(
         int stock,
         List<String> tags,
         List<String> images,
+        boolean isActive,
         Date createdAt,
         Date updatedAt
 ) implements Serializable {
