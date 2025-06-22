@@ -32,6 +32,9 @@ public class Product {
     private List<String> tags;
     private List<String> images;
 
+    @Builder.Default
+    private boolean isActive = true;
+
     @CreatedDate
     private Instant createdAt;
 

@@ -1,4 +1,22 @@
 services:
+  sb-ecommerce-api-dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sb-ecommerce-api-dev-app
+    working_dir: /app
+    command: gradle bootRun --no-daemon
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app:cached
+      - ~/.gradle:/home/gradle/.gradle
+    env_file:
+      - .env
+    depends_on:
+      - sb-ecommerce-api-dev-mongodb
+    networks:
+      - dev-app-tier
   sb-ecommerce-api-dev-mongodb:
     image: mongo:latest
     container_name: sb-ecommerce-api-dev-mongodb

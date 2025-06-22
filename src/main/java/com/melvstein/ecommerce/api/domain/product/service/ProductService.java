@@ -1,10 +1,13 @@
 package com.melvstein.ecommerce.api.domain.product.service;
 
 import com.melvstein.ecommerce.api.domain.product.document.Product;
+import com.melvstein.ecommerce.api.domain.product.dto.ProductDto;
+import com.melvstein.ecommerce.api.domain.product.mapper.ProductMapper;
 import com.melvstein.ecommerce.api.domain.product.repository.ProductRepository;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -25,8 +28,22 @@ public class ProductService {
     }
 
     public PagedModel<EntityModel<Product>> getAllProducts(@Nullable List<String> filter, Pageable pageable) {
-        Page<Product> productPage = productRepository.findAll(pageable);
-        return productPagedResourcesAssembler.toModel(productPage);
+        List<Product> filteredProducts = productRepository.filter(filter, pageable);
+        Page<Product> productPage = new PageImpl<>(filteredProducts, pageable, filteredProducts.size());
+        PagedModel<EntityModel<Product>> productPagedModel = productPagedResourcesAssembler.toModel(productPage);
+
+        List<EntityModel<Product>> productDtoContent = productPagedModel.getContent().stream()
+                .map(entityModel -> {
+                    assert entityModel.getContent() != null;
+                    return EntityModel.of(entityModel.getContent());
+                })
+                .toList();
+
+        return PagedModel.of(
+                productDtoContent,
+                productPagedModel.getMetadata(),
+                productPagedModel.getLinks()
+        );
     }
 
     public Product saveProduct(Product product) {

@@ -4,9 +4,13 @@ import com.melvstein.ecommerce.api.domain.security.authentication.dto.Authentica
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
 import com.melvstein.ecommerce.api.domain.user.document.User;
-import com.melvstein.ecommerce.api.domain.user.dto.LoginRequestDto;
-import com.melvstein.ecommerce.api.domain.user.dto.LoginResponseDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginRequestDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginResponseDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.RegisterRequestDto;
+import com.melvstein.ecommerce.api.domain.user.dto.UserDto;
+import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
+import com.melvstein.ecommerce.api.domain.user.mapper.UserMapper;
 import com.melvstein.ecommerce.api.domain.user.service.UserService;
 import com.melvstein.ecommerce.api.security.JwtService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
@@ -22,7 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +38,71 @@ public class AuthenticationController {
     private final JwtService jwtService;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<UserDto>> register(@RequestBody @Valid RegisterRequestDto request) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<UserDto> response = ApiResponse.<UserDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to register user")
+                .data(null)
+                .build();
+
+        try {
+            /*boolean userAlreadyExists = userService.userAlreadyExists(request.email());
+
+            if (userAlreadyExists) {
+                throw new ApiException(
+                        UserResponseCode.USER_ALREADY_EXISTS.getCode(),
+                        UserResponseCode.USER_ALREADY_EXISTS.getMessage(),
+                        HttpStatus.BAD_REQUEST
+                );
+            }*/
+
+            if (!Role.isValid(request.role())) {
+                throw new ApiException(
+                        UserResponseCode.INVALID_ROLE.getCode(),
+                        UserResponseCode.INVALID_ROLE.getMessage() + " '" + request.role() + "'; must be in " + Arrays.toString(Role.values()).toLowerCase(),
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            User userRegister = User.builder()
+                    .role(request.role())
+                    .email(request.email())
+                    .username(request.username())
+                    .password(request.password())
+                    .build();
+
+            User user = userService.saveUser(userRegister);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("User registered successfully");
+            response.setData(UserMapper.toDto(user));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+
+            if (e.getMessage() != null && e.getMessage().contains("E11000")) {
+                String fieldInfo = e.getMessage().split("dup key:")[1].trim();
+                httpStatus = HttpStatus.BAD_REQUEST;
+                response.setCode(UserResponseCode.USER_ALREADY_EXISTS.getCode());
+                response.setMessage("Duplicate entry: " + fieldInfo);
+            }
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody @Valid LoginRequestDto request) {
@@ -89,6 +158,8 @@ public class AuthenticationController {
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User logged in successfully");
             response.setData(data);
+
+            userService.updateLastLogin(user);
 
             return ResponseEntity.ok(response);
         } catch (ApiException e) {

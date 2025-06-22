@@ -4,14 +4,14 @@ import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.d
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.dto.RefreshTokenResponseDto;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.service.RefreshTokenService;
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.document.RefreshToken;
-import com.melvstein.ecommerce.api.domain.user.dto.LoginResponseDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginResponseDto;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.mapper.UserMapper;
 import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
 import com.melvstein.ecommerce.api.domain.user.document.User;
-import com.melvstein.ecommerce.api.domain.user.dto.LoginRequestDto;
-import com.melvstein.ecommerce.api.domain.user.dto.RegisterRequestDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginRequestDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.RegisterRequestDto;
 import com.melvstein.ecommerce.api.domain.user.dto.UserDto;
 import com.melvstein.ecommerce.api.domain.user.service.UserService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;

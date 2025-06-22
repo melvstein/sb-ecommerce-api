@@ -1,7 +1,7 @@
 package com.melvstein.ecommerce.api.domain.user.service;
 
 import com.melvstein.ecommerce.api.domain.user.document.User;
-import com.melvstein.ecommerce.api.domain.user.dto.LoginRequestDto;
+import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginRequestDto;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
 import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
 import com.melvstein.ecommerce.api.domain.user.repository.UserRepository;
@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -83,5 +84,15 @@ public class UserService {
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public boolean updateLastLogin(User user) {
+        if (user == null || user.getId() == null) {
+            return false;
+        }
+
+        user.setLastLoginAt(Instant.now());
+        userRepository.save(user);
+        return true;
     }
 }

@@ -1,4 +1,4 @@
-package com.melvstein.ecommerce.api.domain.user.dto;
+package com.melvstein.ecommerce.api.domain.security.authentication.dto;
 
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
