@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -187,6 +188,9 @@ public class AuthenticationController {
                 .data(null)
                 .build();
 
+        String storedAccessToken = null;
+        String storedRefreshToken = null;
+
         try {
             String authorizationHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
 
@@ -239,10 +243,20 @@ public class AuthenticationController {
             Map<String, Object> extraClaims = new HashMap<>();
             extraClaims.put("userId", user.getId());
 
-            String accessToken = jwtService.generateAccessToken(user.getUsername(), extraClaims);
+            String accessToken = storedAccessToken = jwtService.generateAccessToken(user.getUsername(), extraClaims);
 
-            refreshTokenService.deleteAllTokensByUserId(user.getId());
+            boolean isDeleted = refreshTokenService.deleteAllTokensByUserId(user.getId());
+
+            if (!isDeleted) {
+                throw new ApiException(
+                        ApiResponseCode.ERROR.getCode(),
+                        "Failed to delete old refresh tokens",
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+
             RefreshToken newRefreshToken = refreshTokenService.generatedRefreshToken(user);
+            storedRefreshToken = newRefreshToken.getToken();
             RefreshToken savedRefreshToken = refreshTokenService.saveRefreshToken(newRefreshToken);
 
             AuthenticationResponseDto data = AuthenticationResponseDto.builder()
@@ -259,6 +273,20 @@ public class AuthenticationController {
             response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setMessage(e.getMessage());
+
+            if (e.getMessage() != null && e.getMessage().contains("E11000")) {
+                String fieldInfo = e.getMessage().split("dup key:")[1].trim();
+                httpStatus = HttpStatus.OK;
+                response.setCode(ApiResponseCode.SUCCESS.getCode());
+                response.setMessage("Duplicate entry: " + fieldInfo);
+
+                AuthenticationResponseDto data = AuthenticationResponseDto.builder()
+                        .accessToken(storedAccessToken)
+                        .refreshToken(storedRefreshToken)
+                        .build();
+
+                response.setData(data);
+            }
         }
 
         log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());

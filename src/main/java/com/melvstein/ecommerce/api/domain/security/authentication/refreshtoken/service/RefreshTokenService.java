@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -38,8 +39,9 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteByToken(token);
     }
 
-    public void deleteAllTokensByUserId(String userId) {
-        refreshTokenRepository.deleteAllByUserId(userId);
+    public boolean deleteAllTokensByUserId(String userId) {
+        long deletedCount = refreshTokenRepository.deleteAllByUserId(userId);
+        return deletedCount > 0;
     }
 
     public String generateToken() {
@@ -58,8 +60,9 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+    @Transactional
     public RefreshToken saveRefreshToken(RefreshToken refreshToken) {
-        return refreshTokenRepository.save(refreshToken);
+        return refreshTokenRepository.findByToken(refreshToken.getToken()).orElseGet(() -> refreshTokenRepository.save(refreshToken));
     }
 
     public Optional<RefreshToken> getAvailableToken(String userId) {
