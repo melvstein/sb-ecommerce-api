@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -247,13 +246,14 @@ public class AuthenticationController {
 
             boolean isDeleted = refreshTokenService.deleteAllTokensByUserId(user.getId());
 
-            if (!isDeleted) {
+            /*if (!isDeleted) {
                 throw new ApiException(
                         ApiResponseCode.ERROR.getCode(),
                         "Failed to delete old refresh tokens",
                         HttpStatus.INTERNAL_SERVER_ERROR
                 );
             }
+            */
 
             RefreshToken newRefreshToken = refreshTokenService.generatedRefreshToken(user);
             storedRefreshToken = newRefreshToken.getToken();

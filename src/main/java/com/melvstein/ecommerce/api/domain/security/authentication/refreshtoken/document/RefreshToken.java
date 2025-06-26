@@ -34,7 +34,4 @@ public class RefreshToken {
 
     @LastModifiedDate
     private Instant updatedAt;
-
-    @Version
-    private Long version;
 }

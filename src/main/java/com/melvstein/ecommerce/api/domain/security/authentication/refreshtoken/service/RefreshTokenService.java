@@ -4,6 +4,7 @@ import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.d
 import com.melvstein.ecommerce.api.domain.security.authentication.refreshtoken.repository.RefreshTokenRepository;
 import com.melvstein.ecommerce.api.domain.user.document.User;
 import com.melvstein.ecommerce.api.security.JwtService;
+import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -44,25 +45,29 @@ public class RefreshTokenService {
         return deletedCount > 0;
     }
 
+    /*public boolean deleteAllTokensByUserId(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        DeleteResult result = mongoTemplate.remove(query, RefreshToken.class);
+        return result.getDeletedCount() > 0;
+    }*/
+
     public String generateToken() {
         return UUID.randomUUID().toString();
     }
 
     public RefreshToken generatedRefreshToken(User user) {
         String token = jwtService.generateRefreshToken(user.getUsername());
-        RefreshToken refreshToken = RefreshToken.builder()
+
+        return RefreshToken.builder()
                 .token(token)
                 .userId(user.getId())
                 .timeout(timeout)
                 .expiredAt(Instant.now().plusSeconds(timeout))
                 .build();
-
-        return refreshTokenRepository.save(refreshToken);
     }
 
-    @Transactional
     public RefreshToken saveRefreshToken(RefreshToken refreshToken) {
-        return refreshTokenRepository.findByToken(refreshToken.getToken()).orElseGet(() -> refreshTokenRepository.save(refreshToken));
+        return refreshTokenRepository.save(refreshToken);
     }
 
     public Optional<RefreshToken> getAvailableToken(String userId) {
