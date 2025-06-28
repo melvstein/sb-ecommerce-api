@@ -296,8 +296,8 @@ public class AuthenticationController {
                 .body(response);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Object>> logout(@RequestBody() @Valid() LogoutRequestDto request) {
+    @PostMapping("/logout/{id}")
+    public ResponseEntity<ApiResponse<Object>> logout(@PathVariable() String id) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ApiResponse<Object> response = ApiResponse.<Object>builder()
@@ -308,7 +308,7 @@ public class AuthenticationController {
 
         try {
             User user = userService
-                    .fetchUserById(request.userId())
+                    .fetchUserById(id)
                     .orElseThrow(() -> new ApiException(
                             UserResponseCode.USER_NOT_FOUND.getCode(),
                             UserResponseCode.USER_NOT_FOUND.getMessage(),
