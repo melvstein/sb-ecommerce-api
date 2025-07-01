@@ -7,6 +7,14 @@ public record RegisterRequestDto(
         @NotBlank(message = "Role is required")
         String role,
 
+        @NotBlank(message = "First name is required")
+        String firstName,
+
+        String middleName,
+
+        @NotBlank(message = "Last name is required")
+        String lastName,
+
         @Email(message = "Invalid email address")
         @NotBlank(message = "Email is required")
         String email,

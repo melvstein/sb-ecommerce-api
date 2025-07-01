@@ -26,6 +26,10 @@ public class User {
     @NotBlank
     private String role;
 
+    private String firstName;
+    private String middleName;
+    private String lastName;
+
     @Email
     @Indexed(unique = true)
     private String email;
@@ -34,6 +38,7 @@ public class User {
     private String username;
 
     private String password;
+    private String rawPassword;
     private String profileImageUrl;
 
     @Builder.Default

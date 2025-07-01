@@ -73,9 +73,13 @@ public class UserController extends BaseController {
 
             User userRegister = User.builder()
                     .role(request.role())
+                    .firstName(request.firstName())
+                    .middleName(request.middleName())
+                    .lastName(request.lastName())
                     .email(request.email())
                     .username(request.username())
                     .password(request.password())
+                    .rawPassword(request.password())
                     .build();
 
             User user = userService.saveUser(userRegister);

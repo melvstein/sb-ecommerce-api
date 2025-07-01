@@ -12,6 +12,9 @@ import java.util.Date;
 public record UserDto(
         String id,
         String role,
+        String firstName,
+        String middleName,
+        String lastName,
         String email,
         String username,
         String profileImageUrl,

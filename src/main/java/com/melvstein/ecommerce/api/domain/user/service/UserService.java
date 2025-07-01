@@ -63,6 +63,7 @@ public class UserService {
         }
 
         user.setRole(user.getRole().toLowerCase());
+        user.setRawPassword(user.getPassword());
         user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
         return userRepository.save(user);
     }
