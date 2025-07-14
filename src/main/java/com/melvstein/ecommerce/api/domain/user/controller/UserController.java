@@ -365,11 +365,28 @@ public class UserController extends BaseController {
                             HttpStatus.NOT_FOUND
                     ));
 
+            request.remove("password");
+
             request.forEach((key, value) -> {
                 switch (key) {
                     case "role":
                         if (value instanceof String) {
                             user.setRole((String) value);
+                        }
+                        break;
+                    case "firstName":
+                        if (value instanceof String) {
+                            user.setFirstName((String) value);
+                        }
+                        break;
+                    case "middleName":
+                        if (value instanceof String) {
+                            user.setMiddleName((String) value);
+                        }
+                        break;
+                    case "lastName":
+                        if (value instanceof String) {
+                            user.setLastName((String) value);
                         }
                         break;
                     case "email":
@@ -380,11 +397,6 @@ public class UserController extends BaseController {
                     case "username":
                         if (value instanceof String) {
                             user.setUsername((String) value);
-                        }
-                        break;
-                    case "password":
-                        if (value instanceof String) {
-                            user.setPassword((String) value);
                         }
                         break;
                     case "profileImageUrl":

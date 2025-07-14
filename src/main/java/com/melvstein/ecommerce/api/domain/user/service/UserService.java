@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,18 +55,46 @@ public class UserService {
     }
 
     public User saveUser(User user) {
+        // Normalize role early
+        user.setRole(user.getRole().toLowerCase());
+
         if (!Role.isValid(user.getRole())) {
             throw new ApiException(
                     UserResponseCode.INVALID_ROLE.getCode(),
-                    UserResponseCode.INVALID_ROLE.getMessage() + " '" + user.getRole() + "'; must be in " + Arrays.toString(Role.values()).toLowerCase(),
+                    UserResponseCode.INVALID_ROLE.getMessage() +
+                            " '" + user.getRole() + "'; must be one of: " +
+                            Arrays.stream(Role.values())
+                                    .map(Enum::name)
+                                    .map(String::toLowerCase)
+                                    .collect(Collectors.joining(", ")),
                     HttpStatus.BAD_REQUEST
             );
         }
 
-        user.setRole(user.getRole().toLowerCase());
-        user.setRawPassword(user.getPassword());
-        user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
+        if (user.getId() != null) {
+            // Update flow
+            User existing = userRepository.findById(user.getId()).orElse(null);
+
+            if (existing != null) {
+                if (!user.getPassword().equals(existing.getPassword())) {
+                    user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
+                } else {
+                    user.setPassword(existing.getPassword());
+                }
+            } else {
+                // User not found but ID is given, treat as new
+                user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
+            }
+        } else {
+            // New user
+            user.setPassword(Utils.bCryptPasswordEncoder().encode(user.getPassword()));
+        }
+
         return userRepository.save(user);
+    }
+
+    private String getPassword(User existing) {
+        return existing.getPassword();
     }
 
     public boolean userAlreadyExists(String email) {
