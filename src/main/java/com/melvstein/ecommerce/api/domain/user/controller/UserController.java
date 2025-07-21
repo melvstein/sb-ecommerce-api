@@ -602,11 +602,11 @@ public class UserController extends BaseController {
                 );
             }
 
-            String imageUrl = userService.uploadUserProfileImage(user, file);
+            String profileImageUrl = userService.uploadUserProfileImage(user, file);
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User profile image uploaded successfully");
-            response.setData(Collections.singletonMap("imageUrl", imageUrl));
+            response.setData(Collections.singletonMap("profileImageUrl", profileImageUrl));
 
             return ResponseEntity.ok(response);
         } catch (ApiException e) {

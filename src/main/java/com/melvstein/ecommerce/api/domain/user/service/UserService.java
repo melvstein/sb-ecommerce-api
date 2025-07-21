@@ -148,9 +148,9 @@ public class UserService {
 
         s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
 
-        String imageUrl = publicUrl + "/" + key;
-        user.setProfileImageUrl(imageUrl);
+        String profileImageUrl = publicUrl + "/" + key;
+        user.setProfileImageUrl(profileImageUrl);
         userRepository.save(user);
-        return imageUrl;
+        return profileImageUrl;
     }
 }
