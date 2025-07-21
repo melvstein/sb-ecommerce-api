@@ -490,4 +490,75 @@ public class UserController extends BaseController {
                 .status(httpStatus)
                 .body(response);
     }
+
+    @PatchMapping("/{id}/password")
+    public ResponseEntity<ApiResponse<Void>> updateUserPassword(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to update user password")
+                .data(null)
+                .build();
+
+        try {
+            User user = userService
+                    .fetchUserById(id)
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            String currentPassword = request.get("currentPassword");
+            if (currentPassword == null || currentPassword.isBlank()) {
+                throw new ApiException(
+                        UserResponseCode.INVALID_PASSWORD.getCode(),
+                        "Current password is required",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String newPassword = request.get("newPassword");
+            if (newPassword == null || newPassword.isBlank()) {
+                throw new ApiException(
+                        UserResponseCode.INVALID_PASSWORD.getCode(),
+                        "New password is required",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            if (!Utils.bCryptPasswordEncoder().matches(currentPassword, user.getPassword())) {
+                throw new ApiException(
+                        UserResponseCode.INVALID_PASSWORD.getCode(),
+                        "Password not match",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            user.setPassword(newPassword);
+            user.setRawPassword(newPassword);
+            userService.saveUser(user);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("User password updated successfully");
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
 }
