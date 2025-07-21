@@ -12,7 +12,8 @@ public enum UserResponseCode {
     USER_ACCESS_DENIED("USER_ACCESS_DENIED", "User access denied"),
     REFRESH_TOKEN_EXPIRED("REFRESH_TOKEN_EXPIRED", "Refresh token expired"),
     INVALID_REFRESH_TOKEN("INVALID_REFRESH_TOKEN", "Invalid refresh token"),
-    INVALID_PASSWORD("INVALID_PASSWORD", "Invalid password");
+    INVALID_PASSWORD("INVALID_PASSWORD", "Invalid password"),
+    FILE_UPLOAD_ERROR("FILE_UPLOAD_ERROR", "File upload error");
 
     private final String code;
     private final String message;

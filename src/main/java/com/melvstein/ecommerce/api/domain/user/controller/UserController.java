@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.*;
@@ -534,7 +535,7 @@ public class UserController extends BaseController {
             if (!Utils.bCryptPasswordEncoder().matches(currentPassword, user.getPassword())) {
                 throw new ApiException(
                         UserResponseCode.INVALID_PASSWORD.getCode(),
-                        "Password not match",
+                        "Password do not match",
                         HttpStatus.BAD_REQUEST
                 );
             }
@@ -545,6 +546,67 @@ public class UserController extends BaseController {
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("User password updated successfully");
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @PostMapping("/{id}/upload-profile-image")
+    public ResponseEntity<ApiResponse<Object>> uploadUserProfileImage(
+            @PathVariable String id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<Object> response = ApiResponse.<Object>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to upload user profile image")
+                .data(null)
+                .build();
+
+        try {
+            User user = userService
+                    .fetchUserById(id)
+                    .orElseThrow(() -> new ApiException(
+                            UserResponseCode.USER_NOT_FOUND.getCode(),
+                            UserResponseCode.USER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            if (file.isEmpty()) {
+                throw new ApiException(
+                        UserResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        "File is empty",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String fileType = file.getContentType();
+            if (!List.of("image/jpeg", "image/png").contains(fileType)) {
+                throw new ApiException(
+                        UserResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        "Invalid file type",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String imageUrl = userService.uploadUserProfileImage(user, file);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("User profile image uploaded successfully");
+            response.setData(Collections.singletonMap("imageUrl", imageUrl));
 
             return ResponseEntity.ok(response);
         } catch (ApiException e) {

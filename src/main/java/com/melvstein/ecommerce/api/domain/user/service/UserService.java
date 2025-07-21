@@ -9,6 +9,7 @@ import com.melvstein.ecommerce.api.shared.exception.ApiException;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -19,11 +20,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +38,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final PagedResourcesAssembler<User> userPagedResourcesAssembler;
     private final AuthenticationManager authenticationManager;
+    private final S3Client s3Client;
+    private final String bucketName = "users-bucket";
+
+    @Value("${r2.public.users-bucket.url}")
+    private String publicUrl;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -124,5 +135,22 @@ public class UserService {
         user.setLastLoginAt(Instant.now());
         userRepository.save(user);
         return true;
+    }
+
+    public String uploadUserProfileImage(User user, MultipartFile file) throws IOException {
+        String key = UUID.randomUUID() + "_" + user.getUsername() + "_" + file.getOriginalFilename();
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType(file.getContentType())
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
+
+        String imageUrl = publicUrl + "/" + key;
+        user.setProfileImageUrl(imageUrl);
+        userRepository.save(user);
+        return imageUrl;
     }
 }
