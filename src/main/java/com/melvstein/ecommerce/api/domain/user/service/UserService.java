@@ -22,7 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -138,6 +140,22 @@ public class UserService {
     }
 
     public String uploadUserProfileImage(User user, MultipartFile file) throws IOException {
+        if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
+            String oldImageUrl = user.getProfileImageUrl();
+            String oldKey = oldImageUrl.replace(publicUrl + "/", "");
+
+            try {
+                DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(oldKey)
+                        .build();
+                s3Client.deleteObject(deleteObjectRequest);
+            } catch (S3Exception e) {
+                // Optional: Log or handle failure to delete old image
+                System.err.println("Failed to delete old image: " + e.awsErrorDetails().errorMessage());
+            }
+        }
+
         String key = UUID.randomUUID() + "_" + user.getUsername() + "_" + file.getOriginalFilename();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
