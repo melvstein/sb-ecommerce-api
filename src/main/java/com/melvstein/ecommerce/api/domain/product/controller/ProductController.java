@@ -193,6 +193,11 @@ public class ProductController extends BaseController {
                             product.setName((String) value);
                         }
                         break;
+                    case "brand":
+                        if (value instanceof String) {
+                            product.setBrand((String) value);
+                        }
+                        break;
                     case "description":
                         if (value instanceof String) {
                             product.setDescription((String) value);
@@ -206,6 +211,11 @@ public class ProductController extends BaseController {
                     case "stock":
                         if (value instanceof Integer) {
                             product.setStock((Integer) value);
+                        }
+                        break;
+                    case "isActive":
+                        if (value instanceof Boolean) {
+                            product.setActive((Boolean) value);
                         }
                         break;
                     case "tags":

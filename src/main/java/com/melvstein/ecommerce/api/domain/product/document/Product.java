@@ -26,6 +26,7 @@ public class Product {
     @Indexed(unique = true)
     private String sku;
     private String name;
+    private String brand;
     private String description;
     private BigDecimal price;
     private int stock;

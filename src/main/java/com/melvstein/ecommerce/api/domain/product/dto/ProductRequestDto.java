@@ -12,6 +12,8 @@ public record ProductRequestDto(
         @NotBlank(message = "Required parameter 'name'")
         String name,
 
+        String brand,
+
         @NotBlank(message = "Required parameter 'description'")
         String description,
 

@@ -15,6 +15,7 @@ public record ProductDto(
         String id,
         String sku,
         String name,
+        String brand,
         String description,
         BigDecimal price,
         int stock,
