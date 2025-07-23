@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum ApiResponseCode {
     SUCCESS("SUCCESS", "Success"),
     ERROR("ERROR", "Error"),
-    UNAUTHORIZED("UNAUTHORIZED", "Unauthorized");
+    UNAUTHORIZED("UNAUTHORIZED", "Unauthorized"),
+    FILE_UPLOAD_ERROR("FILE_UPLOAD_ERROR", "File upload error");
 
     private final String code;
     private final String message;

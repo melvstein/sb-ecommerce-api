@@ -156,7 +156,7 @@ public class UserService {
             }
         }
 
-        String key = UUID.randomUUID() + "_" + user.getUsername() + "_" + file.getOriginalFilename();
+        String key = user.getUsername() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)

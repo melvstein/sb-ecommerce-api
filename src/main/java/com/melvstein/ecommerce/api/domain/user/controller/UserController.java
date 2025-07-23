@@ -587,7 +587,7 @@ public class UserController extends BaseController {
 
             if (file.isEmpty()) {
                 throw new ApiException(
-                        UserResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        ApiResponseCode.FILE_UPLOAD_ERROR.getCode(),
                         "File is empty",
                         HttpStatus.BAD_REQUEST
                 );
@@ -596,7 +596,7 @@ public class UserController extends BaseController {
             String fileType = file.getContentType();
             if (!List.of("image/jpeg", "image/png").contains(fileType)) {
                 throw new ApiException(
-                        UserResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        ApiResponseCode.FILE_UPLOAD_ERROR.getCode(),
                         "Invalid file type",
                         HttpStatus.BAD_REQUEST
                 );

@@ -1,6 +1,8 @@
 package com.melvstein.ecommerce.api.domain.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.melvstein.ecommerce.api.domain.user.document.User;
+import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.product.document.Product;
 import com.melvstein.ecommerce.api.domain.product.dto.ProductDto;
@@ -21,8 +23,10 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -300,5 +304,130 @@ public class ProductController extends BaseController {
         return ResponseEntity
                 .status(httpStatus)
                 .body(response);
+    }
+
+    @PostMapping("/{id}/upload-product-images")
+    public ResponseEntity<ApiResponse<Object>> uploadProductImages(
+            @PathVariable String id,
+            @RequestParam("files") List<MultipartFile> files
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<Object> response = ApiResponse.<Object>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to upload product images")
+                .data(null)
+                .build();
+
+        try {
+            Product product = productService
+                    .fetchProductById(id)
+                    .orElseThrow(() -> new ApiException(
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            if (files == null || files.isEmpty() || files.stream().anyMatch(MultipartFile::isEmpty)) {
+                throw new ApiException(
+                        ApiResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        "One or more files are empty",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            for (MultipartFile file : files) {
+                String fileType = file.getContentType();
+                if (!List.of("image/jpeg", "image/png").contains(fileType)) {
+                    throw new ApiException(
+                            ApiResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                            "Invalid file type: " + fileType,
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+            }
+
+            productService.uploadProductImages(product, files);
+
+            // Fetch updated product to get all images
+            Product updatedProduct = productService
+                    .fetchProductById(id)
+                    .orElseThrow(() -> new ApiException(
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Product images uploaded successfully");
+            response.setData(Collections.singletonMap("productImageUrls", updatedProduct.getImages()));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @DeleteMapping("/{id}/delete-product-images")
+    public ResponseEntity<ApiResponse<Object>> deleteProductImages(
+            @PathVariable String id,
+            @RequestBody List<Integer> imageIndexes
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        ApiResponse<Object> response = ApiResponse.<Object>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to delete product images")
+                .data(null)
+                .build();
+
+        try {
+            Product product = productService
+                    .fetchProductById(id)
+                    .orElseThrow(() -> new ApiException(
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                            ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            List<String> images = product.getImages();
+            if (images == null || images.isEmpty()) {
+                throw new ApiException(
+                        ApiResponseCode.FILE_UPLOAD_ERROR.getCode(),
+                        "No images to delete",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            List<String> imageUrlsToDelete = imageIndexes.stream()
+                    .filter(idx -> idx >= 0 && idx < images.size())
+                    .map(images::get)
+                    .toList();
+
+            List<String> updatedImages = productService.deleteProductImages(product, imageUrlsToDelete);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Product images deleted successfully");
+            response.setData(Collections.singletonMap("productImageUrls", updatedImages));
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+        return ResponseEntity.status(httpStatus).body(response);
     }
 }
