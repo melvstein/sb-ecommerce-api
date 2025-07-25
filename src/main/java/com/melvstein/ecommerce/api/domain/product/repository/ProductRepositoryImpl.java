@@ -24,7 +24,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         List<Criteria> orCriteriaList = new ArrayList<>();
 
         // Always include active products only
-        andCriteriaList.add(Criteria.where("isActive").is(true));
+        andCriteriaList.add(Criteria.where("sku").exists(true));
 
         if (filter != null && !filter.isEmpty()) {
             for (String param : filter) {

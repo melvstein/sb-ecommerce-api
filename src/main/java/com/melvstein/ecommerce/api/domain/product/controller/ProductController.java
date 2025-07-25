@@ -1,8 +1,6 @@
 package com.melvstein.ecommerce.api.domain.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.melvstein.ecommerce.api.domain.user.document.User;
-import com.melvstein.ecommerce.api.domain.user.enums.UserResponseCode;
 import com.melvstein.ecommerce.api.shared.controller.BaseController;
 import com.melvstein.ecommerce.api.domain.product.document.Product;
 import com.melvstein.ecommerce.api.domain.product.dto.ProductDto;
