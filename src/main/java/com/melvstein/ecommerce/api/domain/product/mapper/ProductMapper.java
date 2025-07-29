@@ -25,8 +25,8 @@ public final class ProductMapper {
                 .tags(product.getTags())
                 .images(product.getImages())
                 .isActive(product.isActive())
-                .createdAt(Utils.fromInstantToDate(product.getUpdatedAt()))
-                .updatedAt(Utils.fromInstantToDate(product.getCreatedAt()))
+                .createdAt(Utils.fromInstantToDate(product.getCreatedAt()))
+                .updatedAt(Utils.fromInstantToDate(product.getUpdatedAt()))
                 .build();
     }
 
