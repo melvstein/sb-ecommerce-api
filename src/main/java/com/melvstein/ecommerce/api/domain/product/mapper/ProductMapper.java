@@ -61,11 +61,13 @@ public final class ProductMapper {
         return Product.builder()
                 .sku(request.sku())
                 .name(request.name())
+                .brand(request.brand())
                 .description(request.description())
                 .price(request.price())
                 .stock(request.stock())
                 .tags(request.tags())
                 .images(request.images())
+                .isActive(request.isActive())
                 .build();
     }
 

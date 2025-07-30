@@ -26,6 +26,10 @@ public record ProductRequestDto(
         int stock,
 
         @NotEmpty(message = "List of tags cannot be empty")
-        List<String> tags, List<String> images
+        List<String> tags,
+
+        List<String> images,
+
+        boolean isActive
 ) {
 }
