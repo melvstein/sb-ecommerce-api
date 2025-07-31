@@ -1,6 +1,7 @@
 package com.melvstein.ecommerce.api.shared.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -81,5 +82,14 @@ public class Utils {
 
     public static BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    public static String generateFileName(MultipartFile file, String prefix) {
+        if (file == null || file.isEmpty()) return null;
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) return null;
+
+        return prefix + "-" +  System.currentTimeMillis() + "-" + originalFilename;
     }
 }
