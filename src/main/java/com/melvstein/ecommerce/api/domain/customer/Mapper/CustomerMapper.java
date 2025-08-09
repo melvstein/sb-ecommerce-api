@@ -1,6 +1,7 @@
 package com.melvstein.ecommerce.api.domain.customer.Mapper;
 
 import com.melvstein.ecommerce.api.domain.customer.document.Customer;
+import com.melvstein.ecommerce.api.domain.customer.dto.AddCustomerRequestDto;
 import com.melvstein.ecommerce.api.domain.customer.dto.CustomerDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
@@ -13,13 +14,13 @@ public class CustomerMapper {
 
         return CustomerDto.builder()
                 .id(customer.getId())
+                .provider(customer.getProvider())
                 .username(customer.getUsername())
                 .email(customer.getEmail())
                 .firstName(customer.getFirstName())
                 .middleName(customer.getMiddleName())
                 .lastName(customer.getLastName())
                 .contactNumber(customer.getContactNumber())
-                .provider(customer.getProvider())
                 .profileImageUrl(customer.getProfileImageUrl())
                 .address(customer.getAddress())
                 .isActive(customer.isActive())
@@ -37,13 +38,13 @@ public class CustomerMapper {
 
         return Customer.builder()
                 .id(customerDto.id())
+                .provider(customerDto.provider())
                 .username(customerDto.username())
                 .email(customerDto.email())
                 .firstName(customerDto.firstName())
                 .middleName(customerDto.middleName())
                 .lastName(customerDto.lastName())
                 .contactNumber(customerDto.contactNumber())
-                .provider(customerDto.provider())
                 .profileImageUrl(customerDto.profileImageUrl())
                 .address(customerDto.address())
                 .isActive(customerDto.isActive())
@@ -51,6 +52,23 @@ public class CustomerMapper {
                 .lastLoginAt(customerDto.lastLoginAt().toInstant())
                 .createdAt(customerDto.createdAt().toInstant())
                 .updatedAt(customerDto.updatedAt().toInstant())
+                .build();
+    }
+
+    public static Customer toDocument(AddCustomerRequestDto customerDto) {
+        if (customerDto == null) {
+            return null;
+        }
+
+        return Customer.builder()
+                .provider(customerDto.provider())
+                .username(customerDto.username())
+                .email(customerDto.email())
+                .firstName(customerDto.firstName())
+                .middleName(customerDto.middleName())
+                .lastName(customerDto.lastName())
+                .contactNumber(customerDto.contactNumber())
+                .address(AddressMapper.toDocument(customerDto.address()))
                 .build();
     }
 }

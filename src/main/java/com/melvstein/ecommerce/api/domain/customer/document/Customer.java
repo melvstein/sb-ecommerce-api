@@ -22,6 +22,8 @@ public class Customer {
     @Id
     private String id;
 
+    private String provider;
+
     @Indexed(unique = true)
     private String username;
 
@@ -33,7 +35,6 @@ public class Customer {
     private String middleName;
     private String lastName;
     private String contactNumber;
-    private String provider;
     private String profileImageUrl;
 
     private Address address;

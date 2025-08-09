@@ -12,13 +12,13 @@ import java.util.Date;
 @Jacksonized
 public record CustomerDto(
         String id,
+        String provider,
         String username,
         String email,
         String firstName,
         String middleName,
         String lastName,
         String contactNumber,
-        String provider,
         String profileImageUrl,
         Address address,
         boolean isActive,
