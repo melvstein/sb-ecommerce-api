@@ -58,8 +58,8 @@ public class UserController extends BaseController {
 
             if (userAlreadyExists) {
                 throw new ApiException(
-                        UserResponseCode.USER_ALREADY_EXISTS.getCode(),
-                        UserResponseCode.USER_ALREADY_EXISTS.getMessage(),
+                        CustomerResponseCode.USER_ALREADY_EXISTS.getCode(),
+                        CustomerResponseCode.USER_ALREADY_EXISTS.getMessage(),
                         HttpStatus.BAD_REQUEST
                 );
             }*/

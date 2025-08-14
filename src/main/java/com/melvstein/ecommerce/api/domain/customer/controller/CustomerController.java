@@ -5,10 +5,10 @@ import com.melvstein.ecommerce.api.domain.customer.Mapper.CustomerMapper;
 import com.melvstein.ecommerce.api.domain.customer.document.Customer;
 import com.melvstein.ecommerce.api.domain.customer.dto.AddCustomerRequestDto;
 import com.melvstein.ecommerce.api.domain.customer.dto.CustomerDto;
+import com.melvstein.ecommerce.api.domain.customer.enums.CustomerResponseCode;
 import com.melvstein.ecommerce.api.domain.customer.service.CustomerService;
-import com.melvstein.ecommerce.api.domain.product.document.Product;
-import com.melvstein.ecommerce.api.domain.product.mapper.ProductMapper;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
+import com.melvstein.ecommerce.api.shared.exception.ApiException;
 import com.melvstein.ecommerce.api.shared.util.ApiResponseCode;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 import jakarta.validation.Valid;
@@ -106,6 +106,86 @@ public class CustomerController {
             response.setCode(ApiResponseCode.SUCCESS.getCode());
 
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CustomerDto>> getCustomerById(@PathVariable String id) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<CustomerDto> response = ApiResponse.<CustomerDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("An error occurred while fetching the customer")
+                .data(null)
+                .build();
+
+        try {
+            Customer customer = customerService
+                    .fetchCustomerById(id)
+                    .orElseThrow(() -> new ApiException(
+                            CustomerResponseCode.CUSTOMER_NOT_FOUND.getCode(),
+                            CustomerResponseCode.CUSTOMER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Fetched customer details successfully");
+            response.setData(CustomerMapper.toDto(customer));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<CustomerDto>> deleteCustomerById(@PathVariable String id) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<CustomerDto> response = ApiResponse.<CustomerDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to delete customer")
+                .data(null)
+                .build();
+
+        try {
+            Customer customer = customerService
+                    .fetchCustomerById(id)
+                    .orElseThrow(() -> new ApiException(
+                            CustomerResponseCode.CUSTOMER_NOT_FOUND.getCode(),
+                            CustomerResponseCode.CUSTOMER_NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            customerService.deleteCustomerById(customer.getId());
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Customer deleted successfully");
+            response.setData(CustomerMapper.toDto(customer));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setMessage(e.getMessage());
         }
