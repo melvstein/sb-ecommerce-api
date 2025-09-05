@@ -26,6 +26,8 @@ public record AddCustomerRequestDto(
         @NotBlank(message = "Required parameter 'contactNumber'")
         String contactNumber,
 
-        AddressDto address
+        AddressDto address,
+
+        boolean isActive
 ) {
 }

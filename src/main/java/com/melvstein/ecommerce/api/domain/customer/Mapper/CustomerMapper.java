@@ -69,6 +69,7 @@ public class CustomerMapper {
                 .lastName(customerDto.lastName())
                 .contactNumber(customerDto.contactNumber())
                 .address(AddressMapper.toDocument(customerDto.address()))
+                .isActive(customerDto.isActive())
                 .build();
     }
 }
