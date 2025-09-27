@@ -310,6 +310,9 @@ public class CustomerController {
                                             address.setZipCode(((Number) fieldValue).intValue());
                                         }
                                         break;
+                                    case "isDefault":
+                                        address.setDefault((Boolean) fieldValue);
+                                        break;
                                 }
                             });
                             customer.setAddress(address);
