@@ -96,7 +96,7 @@ public class CustomerController {
             if (existingCustomer.isPresent()) {
                 Customer customer = existingCustomer.get();
 
-                response.setMessage("Product already exists");
+                response.setMessage("Customer already exists");
                 response.setData(CustomerMapper.toDto(customer));
             } else {
                 Customer savedCustomer = customerService.saveCustomer(CustomerMapper.toDocument(request));
@@ -311,7 +311,9 @@ public class CustomerController {
                                         }
                                         break;
                                     case "isDefault":
-                                        address.setDefault((Boolean) fieldValue);
+                                        if (fieldValue instanceof Boolean) {
+                                            address.setDefault((Boolean) fieldValue);
+                                        }
                                         break;
                                 }
                             });

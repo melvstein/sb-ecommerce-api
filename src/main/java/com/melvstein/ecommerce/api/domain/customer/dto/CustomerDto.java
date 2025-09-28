@@ -20,7 +20,7 @@ public record CustomerDto(
         String lastName,
         String contactNumber,
         String profileImageUrl,
-        Address address,
+        AddressDto address,
         boolean isActive,
         boolean isVerified,
         Date lastLoginAt,

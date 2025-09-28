@@ -26,5 +26,7 @@ public record AddressDto(
         String country,
 
         @NotBlank(message = "Zip code is required")
-        Integer zipCode) {
+        Integer zipCode,
+
+        boolean isDefault) {
 }

@@ -18,6 +18,7 @@ public class AddressMapper {
                 .province(address.getProvince())
                 .country(address.getCountry())
                 .zipCode(address.getZipCode())
+                .isDefault(address.isDefault())
                 .build();
     }
 
@@ -34,7 +35,7 @@ public class AddressMapper {
                 .province(addressDto.province())
                 .country(addressDto.country())
                 .zipCode(addressDto.zipCode())
+                .isDefault(addressDto.isDefault())
                 .build();
-
     }
 }
