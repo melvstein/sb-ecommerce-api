@@ -7,7 +7,7 @@ public record AddCustomerRequestDto(
         @NotBlank(message = "Required parameter 'provider'")
         String provider,
 
-        @NotBlank(message = "Required parameter 'provider'")
+        //@NotBlank(message = "Required parameter 'provider'")
         String username,
 
         @Email
@@ -17,17 +17,18 @@ public record AddCustomerRequestDto(
         @NotBlank(message = "Required parameter 'firstName'")
         String firstName,
 
-        @NotBlank(message = "Required parameter 'middleName'")
+        //@NotBlank(message = "Required parameter 'middleName'")
         String middleName,
 
         @NotBlank(message = "Required parameter 'lastName'")
         String lastName,
 
-        @NotBlank(message = "Required parameter 'contactNumber'")
+        //@NotBlank(message = "Required parameter 'contactNumber'")
         String contactNumber,
 
         AddressDto address,
 
-        boolean isActive
+        boolean isActive,
+        boolean isVerified
 ) {
 }

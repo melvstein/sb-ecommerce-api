@@ -48,6 +48,7 @@ public class SecurityConfig {
                                         "/api/v1/auth/register",
                                         "/api/v1/auth/refresh-token"
                                 ).permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/customers").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
