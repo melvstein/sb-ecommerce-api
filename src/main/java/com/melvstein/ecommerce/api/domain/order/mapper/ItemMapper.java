@@ -1,7 +1,7 @@
-package com.melvstein.ecommerce.api.domain.cart.mapper;
+package com.melvstein.ecommerce.api.domain.order.mapper;
 
-import com.melvstein.ecommerce.api.domain.cart.document.Item;
-import com.melvstein.ecommerce.api.domain.cart.dto.ItemDto;
+import com.melvstein.ecommerce.api.domain.order.document.Item;
+import com.melvstein.ecommerce.api.domain.order.dto.ItemDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
 import java.time.Instant;

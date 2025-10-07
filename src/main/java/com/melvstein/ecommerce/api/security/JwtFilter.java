@@ -33,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
         final String username;
 
         String path = request.getRequestURI();
-        if (request.getMethod().equals("GET") && path.startsWith("/api/v1/products")) {
+        if (request.getMethod().equals("GET")) {
             filterChain.doFilter(request, response);
             return;
         }

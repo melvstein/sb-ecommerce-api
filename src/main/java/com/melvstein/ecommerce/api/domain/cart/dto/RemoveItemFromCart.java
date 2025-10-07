@@ -1,24 +1,19 @@
 package com.melvstein.ecommerce.api.domain.cart.dto;
 
-import com.melvstein.ecommerce.api.domain.cart.document.Item;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 @Builder
 @Jacksonized
-public record AddToCartRequestDto(
+public record RemoveItemFromCart(
         @NotBlank(message = "CustomerId is required")
-        String CustomerId,
+        String customerId,
 
-        @NotEmpty(message = "Items are required")
-        List<ItemDto> items
+        @NotBlank(message = "ProductId is required")
+        String productId
 ) implements Serializable {
-    @Serial
     private static final long serialVersionUID = 1L;
 }

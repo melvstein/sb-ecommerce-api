@@ -1,6 +1,5 @@
 package com.melvstein.ecommerce.api.domain.cart.dto;
 
-import com.melvstein.ecommerce.api.domain.cart.document.Item;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
@@ -12,7 +11,7 @@ import java.util.List;
 
 @Builder
 @Jacksonized
-public record AddToCartRequestDto(
+public record MinusToCartRequestDto(
         @NotBlank(message = "CustomerId is required")
         String CustomerId,
 

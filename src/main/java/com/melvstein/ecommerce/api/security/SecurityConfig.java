@@ -38,7 +38,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers(HttpMethod.GET).permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/v1/users/**",
+                                        "/api/v1/products/**",
+                                        "/api/v1/customers/**",
+                                        "/api/v1/carts/**"
+                                ).permitAll()
                                 .requestMatchers(
                                         "/api/v1/users/login",
                                         "/api/v1/users/register",
@@ -47,8 +52,9 @@ public class SecurityConfig {
                                         "/api/v1/auth/logout",
                                         "/api/v1/auth/register",
                                         "/api/v1/auth/refresh-token",
-                                        "/api/v1/customers",
-                                        "/api/v1/carts"
+                                        "/api/v1/customers/**",
+                                        "/api/v1/carts/**",
+                                        "/api/v1/orders/**"
                                 ).permitAll()
                                 //.requestMatchers(HttpMethod.POST, "/api/v1/customers").permitAll()
                                 .anyRequest().authenticated()
