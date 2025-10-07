@@ -15,7 +15,7 @@ public class ItemMapper {
 
         return items.stream()
                 .map(item -> ItemDto.builder()
-                        .productId(item.getProductId())
+                        .sku(item.getSku())
                         .quantity(item.getQuantity())
                         .createdAt(Utils.fromInstantToDate(item.getCreatedAt()))
                         .updatedAt(Utils.fromInstantToDate(item.getUpdatedAt()))
@@ -35,7 +35,7 @@ public class ItemMapper {
                     Instant updatedAt = itemDto.updatedAt() != null ? itemDto.updatedAt().toInstant() : Instant.now();
 
                     return Item.builder()
-                            .productId(itemDto.productId())
+                            .sku(itemDto.sku())
                             .quantity(itemDto.quantity())
                             .createdAt(createdAt)
                             .updatedAt(updatedAt)
@@ -52,7 +52,7 @@ public class ItemMapper {
         Instant updatedAt = itemDto.updatedAt() != null ? itemDto.updatedAt().toInstant() : Instant.now();
 
         return Item.builder()
-                .productId(itemDto.productId())
+                .sku(itemDto.sku())
                 .quantity(itemDto.quantity())
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)

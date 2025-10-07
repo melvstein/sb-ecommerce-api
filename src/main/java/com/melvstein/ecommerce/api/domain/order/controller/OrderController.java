@@ -38,6 +38,16 @@ public class OrderController {
                 .build();
 
         try {
+            request.items().forEach((item) -> {
+                if (item.sku() == null) {
+                    throw new ApiException(
+                            ApiResponseCode.NOT_FOUND.getCode(),
+                            "SKU not found",
+                            HttpStatus.NOT_FOUND
+                    );
+                }
+            });
+
             Order savedOrder = orderService.saveOrder(OrderMapper.toDocument(request));
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Order created successfully");
@@ -123,6 +133,46 @@ public class OrderController {
                 response.setMessage("Order not found with id: " + request.orderId());
                 httpStatus = HttpStatus.NOT_FOUND;
             }
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<ApiResponse<OrderDto>> deleteOrderById(@PathVariable String orderId) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<OrderDto> response = ApiResponse.<OrderDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to delete order")
+                .data(null)
+                .build();
+
+        try {
+            Order order = orderService
+                    .getOrderById(orderId)
+                    .orElseThrow(() -> new ApiException(
+                            ApiResponseCode.NOT_FOUND.getCode(),
+                            ApiResponseCode.NOT_FOUND.getMessage(),
+                            HttpStatus.NOT_FOUND
+                    ));
+
+            orderService.removeOrder(orderId);
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Order deleted successfully");
+            response.setData(OrderMapper.toDto(order));
+
+            return ResponseEntity.ok(response);
         } catch (ApiException e) {
             httpStatus = e.getStatus();
             response.setCode(e.getCode());

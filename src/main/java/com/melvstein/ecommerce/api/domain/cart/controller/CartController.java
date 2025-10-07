@@ -47,7 +47,7 @@ public class CartController {
 
                 request.items().forEach(newItem -> {
                     cart.getItems().stream()
-                            .filter(i -> i.getProductId().equals(newItem.productId()))
+                            .filter(i -> i.getSku().equals(newItem.sku()))
                             .findFirst()
                             .ifPresentOrElse(
                                     existingItem ->
@@ -106,7 +106,7 @@ public class CartController {
 
                 request.items().forEach(newItem -> {
                     cart.getItems().stream()
-                            .filter(i -> i.getProductId().equals(newItem.productId()))
+                            .filter(i -> i.getSku().equals(newItem.sku()))
                             .findFirst()
                             .ifPresentOrElse(
                                     existingItem -> {
@@ -122,7 +122,7 @@ public class CartController {
                                     () -> {
                                         throw new ApiException(
                                                 ApiResponseCode.NOT_FOUND.getCode(),
-                                                "Item with productId " + newItem.productId() + " not found in cart",
+                                                "Item with SKU " + newItem.sku() + " not found in cart",
                                                 HttpStatus.NOT_FOUND
                                         );
                                     }
@@ -248,12 +248,12 @@ public class CartController {
                             HttpStatus.NOT_FOUND
                     ));
 
-            boolean removed = cart.getItems().removeIf(item -> item.getProductId().equals(request.productId()));
+            boolean removed = cart.getItems().removeIf(item -> item.getSku().equals(request.sku()));
 
             if (!removed) {
                 throw new ApiException(
                         ApiResponseCode.NOT_FOUND.getCode(),
-                        "Item with productId " + request.productId() + " not found in cart",
+                        "Item with SKU " + request.sku() + " not found in cart",
                         HttpStatus.NOT_FOUND
                 );
             }

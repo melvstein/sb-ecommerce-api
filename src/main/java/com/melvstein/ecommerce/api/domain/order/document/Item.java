@@ -15,7 +15,7 @@ import java.time.Instant;
 @Builder
 @Jacksonized
 public class Item {
-    private String productId;
+    private String sku;
     private int quantity;
 
     @CreatedDate

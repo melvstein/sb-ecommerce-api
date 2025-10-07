@@ -12,8 +12,8 @@ public record RemoveItemFromCart(
         @NotBlank(message = "CustomerId is required")
         String customerId,
 
-        @NotBlank(message = "ProductId is required")
-        String productId
+        @NotBlank(message = "SKU is required")
+        String sku
 ) implements Serializable {
     private static final long serialVersionUID = 1L;
 }
