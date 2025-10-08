@@ -1,13 +1,12 @@
 package com.melvstein.ecommerce.api.domain.cart.controller;
 
 import com.melvstein.ecommerce.api.domain.cart.document.Cart;
-import com.melvstein.ecommerce.api.domain.cart.dto.AddToCartRequestDto;
-import com.melvstein.ecommerce.api.domain.cart.dto.CartDto;
-import com.melvstein.ecommerce.api.domain.cart.dto.MinusToCartRequestDto;
-import com.melvstein.ecommerce.api.domain.cart.dto.RemoveItemFromCart;
+import com.melvstein.ecommerce.api.domain.cart.dto.*;
 import com.melvstein.ecommerce.api.domain.cart.mapper.CartMapper;
 import com.melvstein.ecommerce.api.domain.cart.mapper.ItemMapper;
 import com.melvstein.ecommerce.api.domain.cart.service.CartService;
+import com.melvstein.ecommerce.api.domain.customer.document.Customer;
+import com.melvstein.ecommerce.api.domain.customer.service.CustomerService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
 import com.melvstein.ecommerce.api.shared.exception.ApiException;
 import com.melvstein.ecommerce.api.shared.util.ApiResponseCode;
@@ -27,10 +26,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class CartController {
+    private final CustomerService customerService;
     private final CartService cartService;
 
-    @PostMapping("/add-items")
-    public ResponseEntity<ApiResponse<CartDto>> addToCart(@RequestBody @Valid AddToCartRequestDto request) {
+    @PostMapping("/update")
+    public ResponseEntity<ApiResponse<CartDto>> updateCart(@RequestBody @Valid UpdateCartRequestDto request) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ApiResponse<CartDto> response = ApiResponse.<CartDto>builder()
@@ -40,6 +40,13 @@ public class CartController {
                 .build();
 
         try {
+            Customer customer = customerService.fetchCustomerById(request.CustomerId())
+                    .orElseThrow(() -> new ApiException(
+                            ApiResponseCode.NOT_FOUND.getCode(),
+                            "Unable to find the customer in the cart list",
+                            HttpStatus.NOT_FOUND
+                    ));
+
             Optional<Cart> existingCart = cartService.getCartByCustomerId(request.CustomerId());
 
             if (existingCart.isPresent()) {
@@ -52,79 +59,39 @@ public class CartController {
                             .ifPresentOrElse(
                                     existingItem ->
                                     {
-                                        existingItem.setQuantity(existingItem.getQuantity() + newItem.quantity());
-                                        existingItem.setUpdatedAt(Instant.now());
-                                    },
-                                    () -> {
-                                        cart.getItems().add(ItemMapper.toDocument(newItem));
-                                    }
-                            );
-                });
+                                        switch (request.action()) {
+                                            case CartService.INCREASE:
+                                                existingItem.setQuantity(existingItem.getQuantity() + newItem.quantity());
+                                                existingItem.setUpdatedAt(Instant.now());
+                                                break;
+                                            case CartService.DECREASE:
+                                                boolean isZeroQuantity = existingItem.getQuantity() - newItem.quantity() <= 0;
 
-                Cart updatedCart = cartService.saveCart(cart);
-
-                response.setMessage("Cart updated successfully");
-                response.setData(CartMapper.toDto(updatedCart));
-            } else {
-                Cart cart = cartService.saveCart(CartMapper.toDocument(request));
-
-                response.setMessage(ApiResponseCode.SUCCESS.getMessage());
-                response.setData(CartMapper.toDto(cart));
-            }
-
-            response.setCode(ApiResponseCode.SUCCESS.getCode());
-
-            return ResponseEntity.ok(response);
-        } catch (ApiException e) {
-            httpStatus = e.getStatus();
-            response.setCode(e.getCode());
-            response.setMessage(e.getMessage());
-        } catch (Exception e) {
-            response.setMessage(e.getMessage());
-        }
-
-        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
-
-        return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @PostMapping("/minus-items")
-    public ResponseEntity<ApiResponse<CartDto>> minusToCart(@RequestBody @Valid MinusToCartRequestDto request) {
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-
-        ApiResponse<CartDto> response = ApiResponse.<CartDto>builder()
-                .code(ApiResponseCode.ERROR.getCode())
-                .message("An unexpected error occurred")
-                .data(null)
-                .build();
-
-        try {
-            Optional<Cart> existingCart = cartService.getCartByCustomerId(request.CustomerId());
-
-            if (existingCart.isPresent()) {
-                Cart cart = existingCart.get();
-
-                request.items().forEach(newItem -> {
-                    cart.getItems().stream()
-                            .filter(i -> i.getSku().equals(newItem.sku()))
-                            .findFirst()
-                            .ifPresentOrElse(
-                                    existingItem -> {
-                                        boolean isZeroQuantity = existingItem.getQuantity() - newItem.quantity() <= 0;
-
-                                        if (existingItem.getQuantity() > 0 && !isZeroQuantity) {
-                                            existingItem.setQuantity(existingItem.getQuantity() - newItem.quantity());
-                                            existingItem.setUpdatedAt(Instant.now());
-                                        } else {
-                                            cart.getItems().remove(existingItem);
+                                                if (existingItem.getQuantity() > 0 && !isZeroQuantity) {
+                                                    existingItem.setQuantity(existingItem.getQuantity() - newItem.quantity());
+                                                    existingItem.setUpdatedAt(Instant.now());
+                                                } else {
+                                                    cart.getItems().remove(existingItem);
+                                                }
+                                                break;
+                                            default:
+                                                throw new ApiException(
+                                                        ApiResponseCode.NOT_FOUND.getCode(),
+                                                        "Action not found. It should be decrease or increase only",
+                                                        HttpStatus.NOT_FOUND
+                                                );
                                         }
                                     },
                                     () -> {
-                                        throw new ApiException(
-                                                ApiResponseCode.NOT_FOUND.getCode(),
-                                                "Item with SKU " + newItem.sku() + " not found in cart",
-                                                HttpStatus.NOT_FOUND
-                                        );
+                                        if (request.action().equals(CartService.INCREASE)) {
+                                            cart.getItems().add(ItemMapper.toDocument(newItem));
+                                        } else {
+                                            throw new ApiException(
+                                                    ApiResponseCode.NOT_FOUND.getCode(),
+                                                    "Item with SKU " + newItem.sku() + " not found in cart",
+                                                    HttpStatus.NOT_FOUND
+                                            );
+                                        }
                                     }
                             );
                 });
@@ -156,7 +123,7 @@ public class CartController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/{customerId}")
+    @GetMapping("/customer/{customerId}")
     public ResponseEntity<ApiResponse<CartDto>> getCartByCustomerId(@PathVariable String customerId) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -170,7 +137,7 @@ public class CartController {
             Cart cart = cartService.getCartByCustomerId(customerId)
                     .orElseThrow(()-> new ApiException(
                        ApiResponseCode.NOT_FOUND.getCode(),
-                       ApiResponseCode.NOT_FOUND.getMessage(),
+                       "Unable to find the customer in the cart list",
                        HttpStatus.NOT_FOUND
                     ));
 
@@ -192,7 +159,7 @@ public class CartController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @DeleteMapping("/{customerId}")
+    @DeleteMapping("/customer/{customerId}")
     public ResponseEntity<ApiResponse<CartDto>> deleteCartByCustomerId(@PathVariable String customerId) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -206,7 +173,7 @@ public class CartController {
             Cart cart = cartService.getCartByCustomerId(customerId)
                     .orElseThrow(()-> new ApiException(
                             ApiResponseCode.NOT_FOUND.getCode(),
-                            ApiResponseCode.NOT_FOUND.getMessage(),
+                            "Unable to find the customer in the cart list",
                             HttpStatus.NOT_FOUND
                     ));
 
@@ -244,7 +211,7 @@ public class CartController {
             Cart cart = cartService.getCartByCustomerId(request.customerId())
                     .orElseThrow(()-> new ApiException(
                             ApiResponseCode.NOT_FOUND.getCode(),
-                            ApiResponseCode.NOT_FOUND.getMessage(),
+                            "Unable to find the customer in the cart list",
                             HttpStatus.NOT_FOUND
                     ));
 

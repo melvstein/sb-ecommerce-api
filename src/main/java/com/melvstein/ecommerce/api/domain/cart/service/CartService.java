@@ -11,6 +11,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CartService {
     private final CartRepository cartRepository;
+    public static final String INCREASE = "increase";
+    public static final String DECREASE = "decrease";
 
     public Cart saveCart(Cart cart) {
         return cartRepository.save(cart);

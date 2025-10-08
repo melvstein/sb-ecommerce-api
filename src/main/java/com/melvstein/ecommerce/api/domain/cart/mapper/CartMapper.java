@@ -4,6 +4,7 @@ import com.melvstein.ecommerce.api.domain.cart.document.Cart;
 import com.melvstein.ecommerce.api.domain.cart.dto.AddToCartRequestDto;
 import com.melvstein.ecommerce.api.domain.cart.dto.CartDto;
 import com.melvstein.ecommerce.api.domain.cart.dto.MinusToCartRequestDto;
+import com.melvstein.ecommerce.api.domain.cart.dto.UpdateCartRequestDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
 
 public class CartMapper {
@@ -47,6 +48,17 @@ public class CartMapper {
     }
 
     public static Cart toDocument(MinusToCartRequestDto requestDto) {
+        if (requestDto == null) {
+            return null;
+        }
+
+        return Cart.builder()
+                .customerId(requestDto.CustomerId())
+                .items(ItemMapper.toDocument(requestDto.items()))
+                .build();
+    }
+
+    public static Cart toDocument(UpdateCartRequestDto requestDto) {
         if (requestDto == null) {
             return null;
         }
