@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @RestController
@@ -134,12 +135,20 @@ public class CartController {
                 .build();
 
         try {
-            Cart cart = cartService.getCartByCustomerId(customerId)
-                    .orElseThrow(()-> new ApiException(
-                       ApiResponseCode.NOT_FOUND.getCode(),
-                       "Unable to find the customer in the cart list",
-                       HttpStatus.NOT_FOUND
+            Customer customer = customerService.fetchCustomerById(customerId)
+                    .orElseThrow(() -> new ApiException(
+                            ApiResponseCode.NOT_FOUND.getCode(),
+                            "Unable to find the customer in the cart list",
+                            HttpStatus.NOT_FOUND
                     ));
+
+            Cart cart = cartService.getCartByCustomerId(customerId)
+                            .orElseGet(() -> {
+                                Cart createCart = new Cart();
+                                createCart.setCustomerId(customerId);
+                                createCart.setItems(new ArrayList<>());
+                                return cartService.saveCart(createCart);
+                            });
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage(ApiResponseCode.SUCCESS.getMessage());

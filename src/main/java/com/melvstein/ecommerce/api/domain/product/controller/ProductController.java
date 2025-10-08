@@ -126,6 +126,49 @@ public class ProductController extends BaseController {
                 .body(response);
     }
 
+    @GetMapping("/sku/{sku}")
+    public ResponseEntity<ApiResponse<ProductDto>> getProductBySku(@PathVariable String sku) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<ProductDto> response = ApiResponse.<ProductDto>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to get product")
+                .data(null)
+                .build();
+
+        try {
+            Optional<Product> existingProduct = productService.fetchProductBySku(sku);
+
+            if (existingProduct.isEmpty()) {
+                throw new ApiException(
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getCode(),
+                        ProductResponseCode.PRODUCT_NOT_FOUND.getMessage(),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+
+            Product product = existingProduct.get();
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Fetched product successfully");
+            response.setData(ProductMapper.toDto(product));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<ProductDto>> saveProduct(@RequestBody @Valid ProductRequestDto request) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
