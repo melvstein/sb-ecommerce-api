@@ -7,6 +7,8 @@ import com.melvstein.ecommerce.api.domain.cart.mapper.ItemMapper;
 import com.melvstein.ecommerce.api.domain.cart.service.CartService;
 import com.melvstein.ecommerce.api.domain.customer.document.Customer;
 import com.melvstein.ecommerce.api.domain.customer.service.CustomerService;
+import com.melvstein.ecommerce.api.domain.product.document.Product;
+import com.melvstein.ecommerce.api.domain.product.service.ProductService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
 import com.melvstein.ecommerce.api.shared.exception.ApiException;
 import com.melvstein.ecommerce.api.shared.util.ApiResponseCode;
@@ -29,6 +31,7 @@ import java.util.Optional;
 public class CartController {
     private final CustomerService customerService;
     private final CartService cartService;
+    private final ProductService productService;
 
     @PostMapping("/update")
     public ResponseEntity<ApiResponse<CartDto>> updateCart(@RequestBody @Valid UpdateCartRequestDto request) {
@@ -85,6 +88,13 @@ public class CartController {
                                     },
                                     () -> {
                                         if (request.action().equals(CartService.INCREASE)) {
+                                            Product product = productService.fetchProductBySku(newItem.sku())
+                                                            .orElseThrow(() -> new ApiException(
+                                                                    ApiResponseCode.NOT_FOUND.getCode(),
+                                                                    "SKU not found in the product list",
+                                                                    HttpStatus.NOT_FOUND
+                                                            ));
+
                                             cart.getItems().add(ItemMapper.toDocument(newItem));
                                         } else {
                                             throw new ApiException(
