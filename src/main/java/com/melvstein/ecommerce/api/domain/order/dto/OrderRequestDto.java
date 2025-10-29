@@ -14,17 +14,6 @@ public record OrderRequestDto(
         String customerId,
 
         @NotBlank(message = "Payment method is required")
-        String paymentMethod,
-
-        @NotEmpty(message = "Items are required")
-        List<ItemDto> items,
-
-        int status,
-
-        @PositiveOrZero
-        double totalAmount,
-
-        Date createdAt,
-        Date updatedAt
+        String paymentMethod
 ) {
 }

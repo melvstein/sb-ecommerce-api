@@ -1,9 +1,11 @@
 package com.melvstein.ecommerce.api.domain.order.dto;
 
+import com.melvstein.ecommerce.api.domain.cart.dto.ItemDto;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -15,7 +17,7 @@ public record OrderDto(
         String paymentMethod,
         List<ItemDto> items,
         int status,
-        double totalAmount,
+        BigDecimal totalAmount,
         Date createdAt,
         Date updatedAt
 ) implements Serializable {

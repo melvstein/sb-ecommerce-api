@@ -1,5 +1,6 @@
 package com.melvstein.ecommerce.api.domain.order.document;
 
+import com.melvstein.ecommerce.api.domain.cart.document.Item;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.CreatedDate;
@@ -8,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class Order {
     int status = 0; // 0: Pending, 1: Processing, 2: Shipped, 3: Delivered, 4: Cancelled
 
     @Builder.Default
-    double totalAmount = 0;
+    BigDecimal totalAmount = BigDecimal.ZERO;
 
     @CreatedDate
     private Instant createdAt;

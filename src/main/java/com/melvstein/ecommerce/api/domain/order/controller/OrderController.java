@@ -1,5 +1,7 @@
 package com.melvstein.ecommerce.api.domain.order.controller;
 
+import com.melvstein.ecommerce.api.domain.cart.document.Cart;
+import com.melvstein.ecommerce.api.domain.cart.service.CartService;
 import com.melvstein.ecommerce.api.domain.customer.enums.CustomerResponseCode;
 import com.melvstein.ecommerce.api.domain.order.document.Order;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderDto;
@@ -7,6 +9,8 @@ import com.melvstein.ecommerce.api.domain.order.dto.OrderRequestDto;
 import com.melvstein.ecommerce.api.domain.order.dto.UpdateOrderStatusRequest;
 import com.melvstein.ecommerce.api.domain.order.mapper.OrderMapper;
 import com.melvstein.ecommerce.api.domain.order.service.OrderService;
+import com.melvstein.ecommerce.api.domain.product.document.Product;
+import com.melvstein.ecommerce.api.domain.product.service.ProductService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
 import com.melvstein.ecommerce.api.shared.exception.ApiException;
 import com.melvstein.ecommerce.api.shared.util.ApiResponseCode;
@@ -18,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @RestController
@@ -26,6 +31,8 @@ import java.util.Optional;
 @Slf4j
 public class OrderController {
     private final OrderService orderService;
+    private final CartService cartService;
+    private final ProductService productService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderDto>> saveOrder(@RequestBody @Valid OrderRequestDto request) {
@@ -38,17 +45,40 @@ public class OrderController {
                 .build();
 
         try {
-            request.items().forEach((item) -> {
-                if (item.sku() == null) {
-                    throw new ApiException(
+            Cart cart = cartService.getCartByCustomerId(request.customerId())
+                    .orElseThrow(() -> new ApiException(
                             ApiResponseCode.NOT_FOUND.getCode(),
-                            "SKU not found",
+                            "Cart not found",
                             HttpStatus.NOT_FOUND
-                    );
-                }
-            });
+                    ));
 
-            Order savedOrder = orderService.saveOrder(OrderMapper.toDocument(request));
+            BigDecimal totalAmount = cart.getItems().stream()
+                    .map(item -> {
+                        String sku = item.getSku();
+                        int quantity = item.getQuantity();
+
+                        Product product = productService.fetchProductBySku(sku)
+                                .orElseThrow(() -> new ApiException(
+                                        ApiResponseCode.NOT_FOUND.getCode(),
+                                        "Product not found. Invalid SKU",
+                                        HttpStatus.NOT_FOUND
+                                ));
+
+                        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            Order order = Order.builder()
+                    .customerId(cart.getCustomerId())
+                    .paymentMethod(request.paymentMethod())
+                    .items(cart.getItems())
+                    .status(orderService.STATUS_PENDING)
+                    .totalAmount(totalAmount)
+                    .build();
+
+            Order savedOrder = orderService.saveOrder(order);
+            cartService.deleteCartByCustomerId(request.customerId());
+
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Order created successfully");
             response.setData(OrderMapper.toDto(savedOrder));

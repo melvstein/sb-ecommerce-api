@@ -4,6 +4,7 @@ import com.melvstein.ecommerce.api.domain.order.document.Order;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderDto;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderRequestDto;
 import com.melvstein.ecommerce.api.shared.util.Utils;
+import com.melvstein.ecommerce.api.domain.cart.mapper.ItemMapper;
 
 import java.time.Instant;
 
@@ -51,17 +52,9 @@ public class OrderMapper {
             return null;
         }
 
-        Instant createdAt = orderDto.createdAt() != null ? orderDto.createdAt().toInstant() : Instant.now();
-        Instant updatedAt = orderDto.updatedAt() != null ? orderDto.updatedAt().toInstant() : Instant.now();
-
         return Order.builder()
                 .customerId(orderDto.customerId())
                 .paymentMethod(orderDto.paymentMethod())
-                .items(ItemMapper.toDocument(orderDto.items()))
-                .status(orderDto.status())
-                .totalAmount(orderDto.totalAmount())
-                .createdAt(createdAt)
-                .updatedAt(updatedAt)
                 .build();
     }
 }

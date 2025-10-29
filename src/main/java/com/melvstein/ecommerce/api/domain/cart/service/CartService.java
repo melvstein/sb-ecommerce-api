@@ -25,4 +25,8 @@ public class CartService {
     public Optional<Cart> getCartByCustomerId(String customerId) {
         return cartRepository.findByCustomerId(customerId);
     }
+
+    public Optional<Cart> getCartById(String id) {
+        return cartRepository.findById(id);
+    }
 }
