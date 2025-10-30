@@ -7,6 +7,7 @@ import com.melvstein.ecommerce.api.shared.util.Utils;
 import com.melvstein.ecommerce.api.domain.cart.mapper.ItemMapper;
 
 import java.time.Instant;
+import java.util.List;
 
 public class OrderMapper {
 
@@ -56,5 +57,15 @@ public class OrderMapper {
                 .customerId(orderDto.customerId())
                 .paymentMethod(orderDto.paymentMethod())
                 .build();
+    }
+
+    public static List<OrderDto> toDto(List<Order> orders) {
+        if (orders == null) {
+            return null;
+        }
+
+        return orders.stream()
+                .map(OrderMapper::toDto)
+                .toList();
     }
 }

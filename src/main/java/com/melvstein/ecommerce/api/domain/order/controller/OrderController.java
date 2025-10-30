@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -82,6 +83,39 @@ public class OrderController {
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Order created successfully");
             response.setData(OrderMapper.toDto(savedOrder));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<ApiResponse<List<OrderDto>>> getOrdersByCustomerId(@PathVariable String customerId) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<List<OrderDto>> response = ApiResponse.<List<OrderDto>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to retrieve orders")
+                .data(null)
+                .build();
+
+        try {
+            List<Order> orders = orderService.getOrdersByCustomerId(customerId);
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Order retrieved successfully");
+            response.setData(OrderMapper.toDto(orders));
 
             return ResponseEntity.ok(response);
         } catch (ApiException e) {

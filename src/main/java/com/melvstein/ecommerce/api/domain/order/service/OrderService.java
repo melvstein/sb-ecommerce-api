@@ -5,6 +5,7 @@ import com.melvstein.ecommerce.api.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,6 +31,10 @@ public class OrderService {
 
     public Optional<Order> getOrderById(String orderId) {
         return orderRepository.findById(orderId);
+    }
+
+    public List<Order> getOrdersByCustomerId(String customerId) {
+        return orderRepository.findAllByCustomerId(customerId);
     }
 
     public Order updateOrderStatus(String orderId, int status) {
