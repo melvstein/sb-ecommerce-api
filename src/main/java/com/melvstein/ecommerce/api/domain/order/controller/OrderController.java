@@ -43,7 +43,7 @@ public class OrderController {
     private final InvoiceService invoiceService;
     private final ReceiptService receiptService;
 
-    @PostMapping
+    @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<OrderDto>> saveOrder(@RequestBody @Valid OrderRequestDto request) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
