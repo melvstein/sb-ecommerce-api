@@ -3,12 +3,17 @@ package com.melvstein.ecommerce.api.domain.order.controller;
 import com.melvstein.ecommerce.api.domain.cart.document.Cart;
 import com.melvstein.ecommerce.api.domain.cart.service.CartService;
 import com.melvstein.ecommerce.api.domain.customer.enums.CustomerResponseCode;
+import com.melvstein.ecommerce.api.domain.order.document.Invoice;
 import com.melvstein.ecommerce.api.domain.order.document.Order;
+import com.melvstein.ecommerce.api.domain.order.document.OrderCounter;
+import com.melvstein.ecommerce.api.domain.order.document.Receipt;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderDto;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderRequestDto;
 import com.melvstein.ecommerce.api.domain.order.dto.UpdateOrderStatusRequest;
 import com.melvstein.ecommerce.api.domain.order.mapper.OrderMapper;
+import com.melvstein.ecommerce.api.domain.order.service.InvoiceService;
 import com.melvstein.ecommerce.api.domain.order.service.OrderService;
+import com.melvstein.ecommerce.api.domain.order.service.ReceiptService;
 import com.melvstein.ecommerce.api.domain.product.document.Product;
 import com.melvstein.ecommerce.api.domain.product.service.ProductService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
@@ -23,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +40,8 @@ public class OrderController {
     private final OrderService orderService;
     private final CartService cartService;
     private final ProductService productService;
+    private final InvoiceService invoiceService;
+    private final ReceiptService receiptService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderDto>> saveOrder(@RequestBody @Valid OrderRequestDto request) {
@@ -53,6 +61,14 @@ public class OrderController {
                             HttpStatus.NOT_FOUND
                     ));
 
+            if (cart.getItems().isEmpty()) {
+                throw new ApiException(
+                        ApiResponseCode.NOT_FOUND.getCode(),
+                        "Empty cart. Cannot create order",
+                        HttpStatus.NOT_FOUND
+                );
+            }
+
             BigDecimal totalAmount = cart.getItems().stream()
                     .map(item -> {
                         String sku = item.getSku();
@@ -69,7 +85,15 @@ public class OrderController {
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+            OrderCounter orderCounter = orderService.getOrderCounter()
+                    .orElseThrow(() -> new ApiException(
+                            ApiResponseCode.NOT_FOUND.getCode(),
+                            "Order counter not found",
+                            HttpStatus.NOT_FOUND
+                    ));
+
             Order order = Order.builder()
+                    .orderNumber(orderCounter.getLastOrderNumber() + 1)
                     .customerId(cart.getCustomerId())
                     .paymentMethod(request.paymentMethod())
                     .items(cart.getItems())
@@ -78,6 +102,14 @@ public class OrderController {
                     .build();
 
             Order savedOrder = orderService.saveOrder(order);
+
+            // save last order number
+            orderService.saveOrderCounter(OrderCounter.builder()
+                            .id(orderCounter.getId())
+                            .sequenceName(orderCounter.getSequenceName())
+                            .lastOrderNumber(savedOrder.getOrderNumber())
+                    .build());
+
             cartService.deleteCartByCustomerId(request.customerId());
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
@@ -187,6 +219,45 @@ public class OrderController {
 
             if (orderOpt.isPresent()) {
                 Order updatedOrder = orderService.updateOrderStatus(request.orderId(), request.status());
+
+                /*List<Integer> invoiceOrderStatuses = List.of(
+                        orderService.STATUS_PROCESSING,
+                        orderService.STATUS_SHIPPED
+                );
+
+                if (invoiceOrderStatuses.contains(request.status())) {
+                    BigInteger invoiceNumber = invoiceService.getLastInvoiceNumber()
+                            .orElse(BigInteger.ZERO);
+
+                    Invoice invoice = Invoice.builder()
+                            .invoiceNumber(invoiceNumber.add(BigInteger.valueOf(1)))
+                            .orderId(updatedOrder.getId())
+                            .customerId(updatedOrder.getCustomerId())
+                            .build();
+                    invoiceService.save(invoice);
+                }*/
+
+                /*List<Integer> receiptOrderStatuses = List.of(
+                        orderService.STATUS_DELIVERED
+                );
+
+                if (receiptOrderStatuses.contains(request.status())) {
+                    Invoice existingInvoice = invoiceService.getInvoiceByOrderId(updatedOrder.getId())
+                            .orElseThrow(() -> new ApiException(
+                                    ApiResponseCode.NOT_FOUND.getCode(),
+                                    "Invoice not found for order id: " + updatedOrder.getId(),
+                                    HttpStatus.NOT_FOUND
+                            ));
+
+                    Receipt receipt = Receipt.builder()
+                            .orderId(updatedOrder.getId())
+                            .customerId(updatedOrder.getCustomerId())
+                            .receiptNumber(existingInvoice.getInvoiceNumber())
+                            .build();
+
+                    receiptService.save(receipt);
+                }*/
+
                 response.setCode(ApiResponseCode.SUCCESS.getCode());
                 response.setMessage("Order status updated successfully");
                 response.setData(OrderMapper.toDto(updatedOrder));

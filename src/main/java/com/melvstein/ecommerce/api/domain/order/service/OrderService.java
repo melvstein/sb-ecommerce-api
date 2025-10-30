@@ -1,10 +1,13 @@
 package com.melvstein.ecommerce.api.domain.order.service;
 
 import com.melvstein.ecommerce.api.domain.order.document.Order;
+import com.melvstein.ecommerce.api.domain.order.document.OrderCounter;
+import com.melvstein.ecommerce.api.domain.order.repository.OrderCounterRepository;
 import com.melvstein.ecommerce.api.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
+    private final OrderCounterRepository orderCounterRepository;
 
     public final String ORDER_PREFIX = "ORD-";
     public final int STATUS_PENDING = 0;
@@ -45,5 +49,20 @@ public class OrderService {
             return orderRepository.save(order);
         }
         return null;
+    }
+
+    public Optional<OrderCounter> getOrderCounter() {
+        OrderCounter orderCounter = orderCounterRepository.findBySequenceName("orderNumber").orElse(
+                OrderCounter.builder()
+                        .sequenceName("orderNumber")
+                        .lastOrderNumber(0)
+                        .build()
+        );
+
+        return Optional.ofNullable(orderCounter);
+    }
+
+    public OrderCounter saveOrderCounter(OrderCounter orderCounter) {
+        return orderCounterRepository.save(orderCounter);
     }
 }

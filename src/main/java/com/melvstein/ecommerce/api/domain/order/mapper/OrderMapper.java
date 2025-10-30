@@ -18,6 +18,7 @@ public class OrderMapper {
 
         return OrderDto.builder()
                 .id(order.getId())
+                .orderNumber(order.getOrderNumber())
                 .customerId(order.getCustomerId())
                 .paymentMethod(order.getPaymentMethod())
                 .items(ItemMapper.toDto(order.getItems()))
@@ -38,6 +39,7 @@ public class OrderMapper {
 
         return Order.builder()
                 .id(orderDto.id())
+                .orderNumber(orderDto.orderNumber())
                 .customerId(orderDto.customerId())
                 .paymentMethod(orderDto.paymentMethod())
                 .items(ItemMapper.toDocument(orderDto.items()))
