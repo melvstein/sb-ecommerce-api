@@ -65,6 +65,19 @@ public class OrderController {
                 );
             }
 
+            cart.getItems().forEach((item) -> {
+                Product product = productService.fetchProductBySku(item.getSku())
+                        .orElseThrow(() -> new ApiException(
+                                ApiResponseCode.NOT_FOUND.getCode(),
+                                "Product not found. Invalid SKU",
+                                HttpStatus.NOT_FOUND
+                        ));
+
+                int stock = product.getStock() - item.getQuantity();
+                product.setStock(stock);
+                productService.saveProduct(product);
+            });
+
             BigDecimal totalAmount = cart.getItems().stream()
                     .map(item -> {
                         String sku = item.getSku();
@@ -227,7 +240,7 @@ public class OrderController {
                 }
 
                 if (request.status() == orderService.STATUS_DELIVERED) {
-                    order.getReceipt().setReceiptNumber(orderService.generateInvoiceNumber(order.getOrderNumber()));
+                    order.getReceipt().setReceiptNumber(orderService.generateReceiptNumber(order.getOrderNumber()));
                     order.getReceipt().setUpdatedAt(Instant.now());
 
                     if (order.getReceipt().getUpdatedAt() == null) {
