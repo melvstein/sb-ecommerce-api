@@ -24,6 +24,8 @@ public class OrderMapper {
                 .items(ItemMapper.toDto(order.getItems()))
                 .status(order.getStatus())
                 .totalAmount(order.getTotalAmount())
+                .invoice(InvoiceMapper.toDto(order.getInvoice()))
+                .receipt(ReceiptMapper.toDto(order.getReceipt()))
                 .createdAt(order.getCreatedAt() != null ? Utils.fromInstantToDate(order.getCreatedAt()) : Utils.fromInstantToDate(Instant.now()))
                 .updatedAt(order.getUpdatedAt() != null ? Utils.fromInstantToDate(order.getUpdatedAt()) : Utils.fromInstantToDate(Instant.now()))
                 .build();
@@ -45,6 +47,8 @@ public class OrderMapper {
                 .items(ItemMapper.toDocument(orderDto.items()))
                 .status(orderDto.status())
                 .totalAmount(orderDto.totalAmount())
+                .invoice(InvoiceMapper.toDocument(orderDto.invoice()))
+                .receipt(ReceiptMapper.toDocument(orderDto.receipt()))
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();

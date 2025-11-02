@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.time.Year;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +18,9 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderCounterRepository orderCounterRepository;
 
-    public final String ORDER_PREFIX = "ORD-";
+    public final String ORDER_PREFIX = "ORD";
+    public final String INVOICE_PREFIX = "INV";
+    public final String RECEIPT_PREFIX = "RCPT";
     public final int STATUS_PENDING = 0;
     public final int STATUS_PROCESSING = 1;
     public final int STATUS_SHIPPED = 2;
@@ -64,5 +67,21 @@ public class OrderService {
 
     public OrderCounter saveOrderCounter(OrderCounter orderCounter) {
         return orderCounterRepository.save(orderCounter);
+    }
+
+    public Order updateOrder(Order order) {
+        return orderRepository.save(order);
+    }
+
+    public String generateInvoiceNumber(long orderNumber) {
+        int year = Year.now().getValue();
+        String formatted = String.format("%d-%04d", year, orderNumber);
+        return INVOICE_PREFIX + "-" + formatted;
+    }
+
+    public String generateReceiptNumber(long orderNumber) {
+        int year = Year.now().getValue();
+        String formatted = String.format("%d-%04d", year, orderNumber);
+        return RECEIPT_PREFIX + "-" + formatted;
     }
 }

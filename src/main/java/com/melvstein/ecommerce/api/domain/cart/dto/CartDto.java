@@ -15,8 +15,8 @@ public record CartDto(
 
         String customerId,
         List<ItemDto> items,
-        Date updatedAt,
-        Date createdAt
+        Date createdAt,
+        Date updatedAt
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

@@ -1,6 +1,8 @@
 package com.melvstein.ecommerce.api.domain.order.dto;
 
 import com.melvstein.ecommerce.api.domain.cart.dto.ItemDto;
+import com.melvstein.ecommerce.api.domain.order.document.Invoice;
+import com.melvstein.ecommerce.api.domain.order.document.Receipt;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -21,6 +23,8 @@ public record OrderDto(
         List<ItemDto> items,
         int status,
         BigDecimal totalAmount,
+        InvoiceDto invoice,
+        ReceiptDto receipt,
         Date createdAt,
         Date updatedAt
 ) implements Serializable {

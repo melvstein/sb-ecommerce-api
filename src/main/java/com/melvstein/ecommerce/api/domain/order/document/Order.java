@@ -39,6 +39,9 @@ public class Order {
     @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    private Invoice invoice;
+    private Receipt receipt;
+
     @CreatedDate
     private Instant createdAt;
 

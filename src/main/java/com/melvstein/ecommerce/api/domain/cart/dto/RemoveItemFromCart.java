@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Builder
@@ -15,5 +16,6 @@ public record RemoveItemFromCart(
         @NotBlank(message = "SKU is required")
         String sku
 ) implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 }

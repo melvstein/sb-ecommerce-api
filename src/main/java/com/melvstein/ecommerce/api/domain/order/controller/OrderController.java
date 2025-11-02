@@ -11,9 +11,7 @@ import com.melvstein.ecommerce.api.domain.order.dto.OrderDto;
 import com.melvstein.ecommerce.api.domain.order.dto.OrderRequestDto;
 import com.melvstein.ecommerce.api.domain.order.dto.UpdateOrderStatusRequest;
 import com.melvstein.ecommerce.api.domain.order.mapper.OrderMapper;
-import com.melvstein.ecommerce.api.domain.order.service.InvoiceService;
 import com.melvstein.ecommerce.api.domain.order.service.OrderService;
-import com.melvstein.ecommerce.api.domain.order.service.ReceiptService;
 import com.melvstein.ecommerce.api.domain.product.document.Product;
 import com.melvstein.ecommerce.api.domain.product.service.ProductService;
 import com.melvstein.ecommerce.api.shared.dto.ApiResponse;
@@ -28,7 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,8 +38,6 @@ public class OrderController {
     private final OrderService orderService;
     private final CartService cartService;
     private final ProductService productService;
-    private final InvoiceService invoiceService;
-    private final ReceiptService receiptService;
 
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<OrderDto>> saveOrder(@RequestBody @Valid OrderRequestDto request) {
@@ -218,45 +214,28 @@ public class OrderController {
             Optional<Order> orderOpt = orderService.getOrderById(request.orderId());
 
             if (orderOpt.isPresent()) {
-                Order updatedOrder = orderService.updateOrderStatus(request.orderId(), request.status());
+                Order order = orderOpt.get();
+                order.setStatus(request.status());
 
-                /*List<Integer> invoiceOrderStatuses = List.of(
-                        orderService.STATUS_PROCESSING,
-                        orderService.STATUS_SHIPPED
-                );
+                if (request.status() == orderService.STATUS_SHIPPED) {
+                    order.getInvoice().setInvoiceNumber(orderService.generateInvoiceNumber(order.getOrderNumber()));
+                    order.getInvoice().setUpdatedAt(Instant.now());
 
-                if (invoiceOrderStatuses.contains(request.status())) {
-                    BigInteger invoiceNumber = invoiceService.getLastInvoiceNumber()
-                            .orElse(BigInteger.ZERO);
+                    if (order.getInvoice().getUpdatedAt() == null) {
+                        order.getInvoice().setCreatedAt(Instant.now());
+                    }
+                }
 
-                    Invoice invoice = Invoice.builder()
-                            .invoiceNumber(invoiceNumber.add(BigInteger.valueOf(1)))
-                            .orderId(updatedOrder.getId())
-                            .customerId(updatedOrder.getCustomerId())
-                            .build();
-                    invoiceService.save(invoice);
-                }*/
+                if (request.status() == orderService.STATUS_DELIVERED) {
+                    order.getReceipt().setReceiptNumber(orderService.generateInvoiceNumber(order.getOrderNumber()));
+                    order.getReceipt().setUpdatedAt(Instant.now());
 
-                /*List<Integer> receiptOrderStatuses = List.of(
-                        orderService.STATUS_DELIVERED
-                );
+                    if (order.getReceipt().getUpdatedAt() == null) {
+                        order.getReceipt().setCreatedAt(Instant.now());
+                    }
+                }
 
-                if (receiptOrderStatuses.contains(request.status())) {
-                    Invoice existingInvoice = invoiceService.getInvoiceByOrderId(updatedOrder.getId())
-                            .orElseThrow(() -> new ApiException(
-                                    ApiResponseCode.NOT_FOUND.getCode(),
-                                    "Invoice not found for order id: " + updatedOrder.getId(),
-                                    HttpStatus.NOT_FOUND
-                            ));
-
-                    Receipt receipt = Receipt.builder()
-                            .orderId(updatedOrder.getId())
-                            .customerId(updatedOrder.getCustomerId())
-                            .receiptNumber(existingInvoice.getInvoiceNumber())
-                            .build();
-
-                    receiptService.save(receipt);
-                }*/
+                Order updatedOrder = orderService.saveOrder(order);
 
                 response.setCode(ApiResponseCode.SUCCESS.getCode());
                 response.setMessage("Order status updated successfully");

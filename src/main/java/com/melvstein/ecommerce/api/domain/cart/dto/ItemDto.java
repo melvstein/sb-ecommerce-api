@@ -15,8 +15,8 @@ public record ItemDto(
         String sku,
 
         int quantity,
-        Date updatedAt,
-        Date createdAt
+        Date createdAt,
+        Date updatedAt
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
