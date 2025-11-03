@@ -13,9 +13,7 @@ import java.time.Instant;
 @Builder
 @Jacksonized
 public class Receipt {
-    @Indexed(unique = true)
     private String receiptNumber;
-
     private String remarks;
     private String transactionId;
     private Instant refundedAt;

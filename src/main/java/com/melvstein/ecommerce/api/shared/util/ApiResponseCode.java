@@ -9,7 +9,8 @@ public enum ApiResponseCode {
     UNAUTHORIZED("UNAUTHORIZED", "Unauthorized"),
     FILE_UPLOAD_ERROR("FILE_UPLOAD_ERROR", "File upload error"),
     NOT_FOUND("NOT_FOUND", "Not found"),
-    INVALID_REQUEST("INVALID_REQUEST", "Invalid request");
+    INVALID_REQUEST("INVALID_REQUEST", "Invalid request"),
+    BAD_REQUEST("BAD_REQUEST", "Bad request");
 
     private final String code;
     private final String message;

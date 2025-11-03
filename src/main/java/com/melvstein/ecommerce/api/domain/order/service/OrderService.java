@@ -44,6 +44,14 @@ public class OrderService {
         return orderRepository.findAllByCustomerId(customerId);
     }
 
+    public List<Order> getOrdersByCustomerIdAndStatus(String customerId, int status) {
+        return orderRepository.findAllByCustomerIdAndStatus(customerId, status);
+    }
+
+    public List<Order> getOrdersByCustomerIdAndStatusNot(String customerId, int status) {
+        return orderRepository.findAllByCustomerIdAndStatusNot(customerId, status);
+    }
+
     public Order updateOrderStatus(String orderId, int status) {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isPresent()) {

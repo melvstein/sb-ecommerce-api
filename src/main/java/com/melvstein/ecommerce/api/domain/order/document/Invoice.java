@@ -13,7 +13,6 @@ import java.time.Instant;
 @Builder
 @Jacksonized
 public class Invoice {
-    @Indexed(unique = true)
     private String invoiceNumber;
     private Instant createdAt;
     private Instant updatedAt;

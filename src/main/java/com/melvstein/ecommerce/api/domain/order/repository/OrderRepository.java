@@ -11,5 +11,7 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends MongoRepository<Order, String> {
     List<Order> findAllByCustomerId(String customerId);
+    List<Order> findAllByCustomerIdAndStatus(String customerId, int status);
+    List<Order> findAllByCustomerIdAndStatusNot(String customerId, int status);
     Optional<Order> findTopByOrderByOrderNumberDesc();
 }

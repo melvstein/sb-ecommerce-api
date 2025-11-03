@@ -26,6 +26,8 @@ public class OrderMapper {
                 .totalAmount(order.getTotalAmount())
                 .invoice(InvoiceMapper.toDto(order.getInvoice()))
                 .receipt(ReceiptMapper.toDto(order.getReceipt()))
+                .shippingDetails(order.getShippingDetails())
+                .cancelledAt(order.getCancelledAt() != null ? Utils.fromInstantToDate(order.getCancelledAt()) : null)
                 .createdAt(order.getCreatedAt() != null ? Utils.fromInstantToDate(order.getCreatedAt()) : Utils.fromInstantToDate(Instant.now()))
                 .updatedAt(order.getUpdatedAt() != null ? Utils.fromInstantToDate(order.getUpdatedAt()) : Utils.fromInstantToDate(Instant.now()))
                 .build();
@@ -36,6 +38,7 @@ public class OrderMapper {
             return null;
         }
 
+        Instant cancelledAt = orderDto.cancelledAt() != null ? orderDto.cancelledAt().toInstant() : null;
         Instant createdAt = orderDto.createdAt() != null ? orderDto.createdAt().toInstant() : Instant.now();
         Instant updatedAt = orderDto.updatedAt() != null ? orderDto.updatedAt().toInstant() : Instant.now();
 
@@ -49,6 +52,8 @@ public class OrderMapper {
                 .totalAmount(orderDto.totalAmount())
                 .invoice(InvoiceMapper.toDocument(orderDto.invoice()))
                 .receipt(ReceiptMapper.toDocument(orderDto.receipt()))
+                .shippingDetails(orderDto.shippingDetails())
+                .cancelledAt(cancelledAt)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();

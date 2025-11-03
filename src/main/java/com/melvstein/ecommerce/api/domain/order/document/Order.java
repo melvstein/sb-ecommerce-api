@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
 
@@ -41,6 +40,8 @@ public class Order {
 
     private Invoice invoice;
     private Receipt receipt;
+    private ShippingDetails shippingDetails;
+    private Instant cancelledAt;
 
     @CreatedDate
     private Instant createdAt;

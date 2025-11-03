@@ -73,6 +73,14 @@ public class OrderController {
                                 HttpStatus.NOT_FOUND
                         ));
 
+                if (product.getStock() < item.getQuantity() || product.getStock() <= 0) {
+                    throw new ApiException(
+                            ApiResponseCode.BAD_REQUEST.getCode(),
+                            "Insufficient stock for product SKU: " + item.getSku(),
+                            HttpStatus.BAD_REQUEST
+                    );
+                }
+
                 int stock = product.getStock() - item.getQuantity();
                 product.setStock(stock);
                 productService.saveProduct(product);
@@ -108,6 +116,7 @@ public class OrderController {
                     .items(cart.getItems())
                     .status(orderService.STATUS_PENDING)
                     .totalAmount(totalAmount)
+                    .shippingDetails(request.shippingDetails())
                     .build();
 
             Order savedOrder = orderService.saveOrder(order);
@@ -142,7 +151,11 @@ public class OrderController {
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<ApiResponse<List<OrderDto>>> getOrdersByCustomerId(@PathVariable String customerId) {
+    public ResponseEntity<ApiResponse<List<OrderDto>>> getOrdersByCustomerId(
+            @PathVariable String customerId,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false, defaultValue = "false") boolean excludeStatus
+    ) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ApiResponse<List<OrderDto>> response = ApiResponse.<List<OrderDto>>builder()
@@ -152,7 +165,20 @@ public class OrderController {
                 .build();
 
         try {
-            List<Order> orders = orderService.getOrdersByCustomerId(customerId);
+            List<Order> orders;
+            if (status == null) {
+                System.out.println("Fetching orders without status filter");
+                orders = orderService.getOrdersByCustomerId(customerId);
+            } else {
+                if (excludeStatus) {
+                    System.out.println("Fetching orders with status filter not equal to: " + status);
+                    orders = orderService.getOrdersByCustomerIdAndStatusNot(customerId, status);
+                } else {
+                    System.out.println("Fetching orders with status filter: " + status);
+                    orders = orderService.getOrdersByCustomerIdAndStatus(customerId, status);
+                }
+
+            }
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());
             response.setMessage("Order retrieved successfully");
@@ -230,22 +256,39 @@ public class OrderController {
                 Order order = orderOpt.get();
                 order.setStatus(request.status());
 
-                if (request.status() == orderService.STATUS_SHIPPED) {
-                    order.getInvoice().setInvoiceNumber(orderService.generateInvoiceNumber(order.getOrderNumber()));
-                    order.getInvoice().setUpdatedAt(Instant.now());
+                if (request.status() == orderService.STATUS_CANCELLED) {
+                    order.getItems().forEach((item) -> {
+                        Product product = productService.fetchProductBySku(item.getSku())
+                                .orElseThrow(() -> new ApiException(
+                                        ApiResponseCode.NOT_FOUND.getCode(),
+                                        "Product not found. Invalid SKU",
+                                        HttpStatus.NOT_FOUND
+                                ));
 
-                    if (order.getInvoice().getUpdatedAt() == null) {
-                        order.getInvoice().setCreatedAt(Instant.now());
-                    }
+                        int stock = product.getStock() + item.getQuantity();
+                        product.setStock(stock);
+                        productService.saveProduct(product);
+                    });
+                }
+
+                if (request.status() == orderService.STATUS_SHIPPED) {
+                    Invoice shippingInvoice = Invoice.builder()
+                            .invoiceNumber(orderService.generateInvoiceNumber(order.getOrderNumber()))
+                            .createdAt(order.getInvoice() != null && order.getInvoice().getCreatedAt() != null ? order.getInvoice().getCreatedAt() : Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+
+                    order.setInvoice(shippingInvoice);
                 }
 
                 if (request.status() == orderService.STATUS_DELIVERED) {
-                    order.getReceipt().setReceiptNumber(orderService.generateReceiptNumber(order.getOrderNumber()));
-                    order.getReceipt().setUpdatedAt(Instant.now());
+                    Receipt receipt = Receipt.builder()
+                            .receiptNumber(orderService.generateReceiptNumber(order.getOrderNumber()))
+                            .createdAt(order.getReceipt() != null && order.getReceipt().getCreatedAt() != null ? order.getReceipt().getCreatedAt() : Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
 
-                    if (order.getReceipt().getUpdatedAt() == null) {
-                        order.getReceipt().setCreatedAt(Instant.now());
-                    }
+                    order.setReceipt(receipt);
                 }
 
                 Order updatedOrder = orderService.saveOrder(order);
