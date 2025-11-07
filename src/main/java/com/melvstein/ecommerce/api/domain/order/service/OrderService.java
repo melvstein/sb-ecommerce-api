@@ -36,6 +36,10 @@ public class OrderService {
         orderRepository.deleteById(orderId);
     }
 
+    public List<Order> getOrders() {
+        return orderRepository.findAll();
+    }
+
     public Optional<Order> getOrderById(String orderId) {
         return orderRepository.findById(orderId);
     }
@@ -46,6 +50,10 @@ public class OrderService {
 
     public List<Order> getOrdersByCustomerIdAndStatus(String customerId, int status) {
         return orderRepository.findAllByCustomerIdAndStatus(customerId, status);
+    }
+
+    public List<Order> getOrdersByCustomerIdAndStatusIn(String customerId, List<Integer> status) {
+        return orderRepository.findAllByCustomerIdAndStatusIn(customerId, status);
     }
 
     public List<Order> getOrdersByCustomerIdAndStatusNot(String customerId, int status) {

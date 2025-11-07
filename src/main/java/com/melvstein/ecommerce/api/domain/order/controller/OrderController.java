@@ -150,11 +150,45 @@ public class OrderController {
                 .body(response);
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<OrderDto>>> getOrders(
+            @RequestParam(required = false) List<Integer> status
+    ) {
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        ApiResponse<List<OrderDto>> response = ApiResponse.<List<OrderDto>>builder()
+                .code(ApiResponseCode.ERROR.getCode())
+                .message("Failed to retrieve orders")
+                .data(null)
+                .build();
+
+        try {
+            List<Order> orders = orderService.getOrders();
+
+            response.setCode(ApiResponseCode.SUCCESS.getCode());
+            response.setMessage("Order retrieved successfully");
+            response.setData(OrderMapper.toDto(orders));
+
+            return ResponseEntity.ok(response);
+        } catch (ApiException e) {
+            httpStatus = e.getStatus();
+            response.setCode(e.getCode());
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setMessage(e.getMessage());
+        }
+
+        log.error("{} - code={} message={}", Utils.getClassAndMethod(), response.getCode(), response.getMessage());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(response);
+    }
+
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<ApiResponse<List<OrderDto>>> getOrdersByCustomerId(
             @PathVariable String customerId,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(required = false, defaultValue = "false") boolean excludeStatus
+            @RequestParam(required = false) List<Integer> status
     ) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -170,14 +204,8 @@ public class OrderController {
                 System.out.println("Fetching orders without status filter");
                 orders = orderService.getOrdersByCustomerId(customerId);
             } else {
-                if (excludeStatus) {
-                    System.out.println("Fetching orders with status filter not equal to: " + status);
-                    orders = orderService.getOrdersByCustomerIdAndStatusNot(customerId, status);
-                } else {
-                    System.out.println("Fetching orders with status filter: " + status);
-                    orders = orderService.getOrdersByCustomerIdAndStatus(customerId, status);
-                }
-
+                System.out.println("Fetching orders with status filter: " + status);
+                orders = orderService.getOrdersByCustomerIdAndStatusIn(customerId, status);
             }
 
             response.setCode(ApiResponseCode.SUCCESS.getCode());

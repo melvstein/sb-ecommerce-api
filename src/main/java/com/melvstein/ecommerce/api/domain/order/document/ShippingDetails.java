@@ -12,6 +12,7 @@ public class ShippingDetails {
     private String receiverMiddleName;
     private String receiverLastName;
     private String receiverContactNumber;
+    private String receiverEmailAddress;
     private ShippingAddress shippingAddress;
 
     @Builder.Default
