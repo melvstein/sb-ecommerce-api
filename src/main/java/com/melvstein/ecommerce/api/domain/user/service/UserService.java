@@ -1,5 +1,6 @@
 package com.melvstein.ecommerce.api.domain.user.service;
 
+import com.melvstein.ecommerce.api.config.ImageProperties;
 import com.melvstein.ecommerce.api.domain.user.document.User;
 import com.melvstein.ecommerce.api.domain.security.authentication.dto.LoginRequestDto;
 import com.melvstein.ecommerce.api.domain.user.enums.Role;
@@ -26,12 +27,21 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +52,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final S3Client s3Client;
     private final String bucketName = "users-bucket";
+    private final ImageProperties imageProperties;
 
     @Value("${r2.public.users-bucket.url}")
     private String publicUrl;
@@ -140,35 +151,101 @@ public class UserService {
     }
 
     public String uploadUserProfileImage(User user, MultipartFile file) throws IOException {
+
+        // --- Step 1: Delete old image if exists ---
         if (user.getProfileImageUrl() != null && !user.getProfileImageUrl().isEmpty()) {
             String oldImageUrl = user.getProfileImageUrl();
             String oldKey = oldImageUrl.replace(publicUrl + "/", "");
-
             try {
-                DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                s3Client.deleteObject(DeleteObjectRequest.builder()
                         .bucket(bucketName)
                         .key(oldKey)
-                        .build();
-                s3Client.deleteObject(deleteObjectRequest);
+                        .build());
             } catch (S3Exception e) {
-                // Optional: Log or handle failure to delete old image
                 System.err.println("Failed to delete old image: " + e.awsErrorDetails().errorMessage());
             }
         }
 
+        // --- Step 2: Generate unique key ---
         String key = user.getUsername() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
+        // --- Step 3: Read image ---
+        BufferedImage image = ImageIO.read(file.getInputStream());
+        if (image == null) {
+            // Not an image, upload as-is
+            s3Client.putObject(PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .contentType(file.getContentType())
+                            .build(),
+                    software.amazon.awssdk.core.sync.RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            String profileImageUrl = publicUrl + "/" + key;
+            user.setProfileImageUrl(profileImageUrl);
+            userRepository.save(user);
+            return profileImageUrl;
+        }
+
+        // --- Step 4: Convert non-RGB images to RGB ---
+        if (image.getType() != BufferedImage.TYPE_INT_RGB) {
+            BufferedImage rgbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = rgbImage.createGraphics();
+            g.drawImage(image, 0, 0, null);
+            g.dispose();
+            image = rgbImage;
+        }
+
+        // --- Step 5: Resize and compress using properties ---
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        float quality = 1.0f;
+        int maxWidth = imageProperties.getMaxWidth();
+        int maxHeight = imageProperties.getMaxHeight();
+
+        // Resize if image is larger than max dimensions
+        if (image.getWidth() > maxWidth || image.getHeight() > maxHeight) {
+            BufferedImage resizedImage = new BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = resizedImage.createGraphics();
+            g2.drawImage(image, 0, 0, maxWidth, maxHeight, null);
+            g2.dispose();
+            image = resizedImage;
+        }
+
+        while (true) {
+            outputStream.reset();
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            if (param.canWriteCompressed()) {
+                param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                param.setCompressionQuality(quality);
+            }
+            try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(image, null, null), param);
+                writer.dispose();
+            }
+
+            if (outputStream.size() / 1024 <= imageProperties.getMaxSizeKb() ||
+                    quality <= imageProperties.getMinQuality()) {
+                break;
+            }
+            quality -= 0.05f;
+        }
+
+        // --- Step 6: Upload compressed image ---
+        InputStream compressedInputStream = new ByteArrayInputStream(outputStream.toByteArray());
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(file.getContentType())
+                .contentType("image/jpeg")
                 .build();
 
-        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
+        s3Client.putObject(putObjectRequest,
+                software.amazon.awssdk.core.sync.RequestBody.fromInputStream(compressedInputStream, outputStream.size()));
 
+        // --- Step 7: Update user record ---
         String profileImageUrl = publicUrl + "/" + key;
         user.setProfileImageUrl(profileImageUrl);
         userRepository.save(user);
+
         return profileImageUrl;
     }
 }

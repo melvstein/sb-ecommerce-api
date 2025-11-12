@@ -1,5 +1,6 @@
 package com.melvstein.ecommerce.api.domain.product.service;
 
+import com.melvstein.ecommerce.api.config.ImageProperties;
 import com.melvstein.ecommerce.api.domain.product.document.Product;
 import com.melvstein.ecommerce.api.domain.product.dto.ProductDto;
 import com.melvstein.ecommerce.api.domain.product.mapper.ProductMapper;
@@ -21,7 +22,18 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +45,7 @@ public class ProductService {
     private final PagedResourcesAssembler<Product> productPagedResourcesAssembler;
     private final S3Client s3Client;
     private final String bucketName = "products-bucket";
+    private final ImageProperties imageProperties;
 
     @Value("${r2.public.products-bucket.url}")
     private String publicUrl;
@@ -86,23 +99,86 @@ public class ProductService {
 
     public List<String> uploadProductImages(Product product, List<MultipartFile> files) throws IOException {
         List<String> existingImages = product.getImages() != null
-                ? new java.util.ArrayList<>(product.getImages())
-                : new java.util.ArrayList<>();
-        List<String> newImageUrls = new java.util.ArrayList<>();
+                ? new ArrayList<>(product.getImages())
+                : new ArrayList<>();
+        List<String> newImageUrls = new ArrayList<>();
 
         for (MultipartFile file : files) {
             String key = product.getName() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .contentType(file.getContentType())
-                    .build();
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image != null) {
+                // Convert non-RGB images to RGB
+                if (image.getType() != BufferedImage.TYPE_INT_RGB) {
+                    BufferedImage rgbImage = new BufferedImage(
+                            image.getWidth(),
+                            image.getHeight(),
+                            BufferedImage.TYPE_INT_RGB
+                    );
+                    Graphics2D g = rgbImage.createGraphics();
+                    g.drawImage(image, 0, 0, null);
+                    g.dispose();
+                    image = rgbImage;
+                }
 
-            s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
+                // Resize if larger than max dimensions
+                int maxWidth = imageProperties.getMaxWidth();
+                int maxHeight = imageProperties.getMaxHeight();
+                if (image.getWidth() > maxWidth || image.getHeight() > maxHeight) {
+                    BufferedImage resizedImage = new BufferedImage(
+                            maxWidth, maxHeight, BufferedImage.TYPE_INT_RGB
+                    );
+                    Graphics2D g2 = resizedImage.createGraphics();
+                    g2.drawImage(image, 0, 0, maxWidth, maxHeight, null);
+                    g2.dispose();
+                    image = resizedImage;
+                }
 
-            String imageUrl = publicUrl + "/" + key;
-            newImageUrls.add(imageUrl);
+                // Compress to max size
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                float quality = 1.0f;
+                while (true) {
+                    outputStream.reset();
+                    ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+                    ImageWriteParam param = writer.getDefaultWriteParam();
+                    if (param.canWriteCompressed()) {
+                        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                        param.setCompressionQuality(quality);
+                    }
+                    try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
+                        writer.setOutput(ios);
+                        writer.write(null, new IIOImage(image, null, null), param);
+                        writer.dispose();
+                    }
+
+                    if (outputStream.size() / 1024 <= imageProperties.getMaxSizeKb()
+                            || quality <= imageProperties.getMinQuality()) {
+                        break;
+                    }
+                    quality -= 0.05f;
+                }
+
+                InputStream compressedInputStream = new ByteArrayInputStream(outputStream.toByteArray());
+                PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType("image/jpeg")
+                        .build();
+
+                s3Client.putObject(putObjectRequest,
+                        software.amazon.awssdk.core.sync.RequestBody.fromInputStream(compressedInputStream, outputStream.size()));
+
+            } else {
+                // If not an image, upload as-is
+                s3Client.putObject(PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(key)
+                                .contentType(file.getContentType())
+                                .build(),
+                        software.amazon.awssdk.core.sync.RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            }
+
+            newImageUrls.add(publicUrl + "/" + key);
         }
 
         existingImages.addAll(newImageUrls);
