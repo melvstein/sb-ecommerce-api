@@ -126,14 +126,14 @@ public class CustomerService {
             return imageUrl;
         }
 
-        // --- Step 4: Convert non-RGB images to RGB ---
-        if (image.getType() != BufferedImage.TYPE_INT_RGB) {
-            BufferedImage rgbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = rgbImage.createGraphics();
-            g.drawImage(image, 0, 0, null);
-            g.dispose();
-            image = rgbImage;
-        }
+        // --- Step 4: Convert to RGB with white background ---
+        BufferedImage rgbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = rgbImage.createGraphics();
+        g.setColor(Color.WHITE); // White background
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        image = rgbImage;
 
         // --- Step 5: Resize and compress using properties ---
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -145,6 +145,8 @@ public class CustomerService {
         if (image.getWidth() > maxWidth || image.getHeight() > maxHeight) {
             BufferedImage resizedImage = new BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = resizedImage.createGraphics();
+            g2.setColor(Color.WHITE);
+            g2.fillRect(0, 0, maxWidth, maxHeight);
             g2.drawImage(image, 0, 0, maxWidth, maxHeight, null);
             g2.dispose();
             image = resizedImage;

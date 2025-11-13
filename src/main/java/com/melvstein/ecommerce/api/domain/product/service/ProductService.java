@@ -106,35 +106,37 @@ public class ProductService {
         for (MultipartFile file : files) {
             String key = product.getName() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-            BufferedImage image = ImageIO.read(file.getInputStream());
-            if (image != null) {
-                // Convert non-RGB images to RGB
-                if (image.getType() != BufferedImage.TYPE_INT_RGB) {
-                    BufferedImage rgbImage = new BufferedImage(
-                            image.getWidth(),
-                            image.getHeight(),
-                            BufferedImage.TYPE_INT_RGB
-                    );
-                    Graphics2D g = rgbImage.createGraphics();
-                    g.drawImage(image, 0, 0, null);
-                    g.dispose();
-                    image = rgbImage;
-                }
+            BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage != null) {
+                // --- Flatten image onto white background ---
+                BufferedImage image = new BufferedImage(
+                        originalImage.getWidth(),
+                        originalImage.getHeight(),
+                        BufferedImage.TYPE_INT_RGB
+                );
+                Graphics2D g = image.createGraphics();
+                g.setColor(Color.WHITE); // White background
+                g.fillRect(0, 0, image.getWidth(), image.getHeight());
+                g.drawImage(originalImage, 0, 0, null);
+                g.dispose();
 
-                // Resize if larger than max dimensions
+                // --- Resize if larger than max dimensions ---
                 int maxWidth = imageProperties.getMaxWidth();
                 int maxHeight = imageProperties.getMaxHeight();
                 if (image.getWidth() > maxWidth || image.getHeight() > maxHeight) {
-                    BufferedImage resizedImage = new BufferedImage(
-                            maxWidth, maxHeight, BufferedImage.TYPE_INT_RGB
-                    );
+                    double scale = Math.min((double) maxWidth / image.getWidth(), (double) maxHeight / image.getHeight());
+                    int newWidth = (int) (image.getWidth() * scale);
+                    int newHeight = (int) (image.getHeight() * scale);
+
+                    BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
                     Graphics2D g2 = resizedImage.createGraphics();
-                    g2.drawImage(image, 0, 0, maxWidth, maxHeight, null);
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    g2.drawImage(image, 0, 0, newWidth, newHeight, null);
                     g2.dispose();
                     image = resizedImage;
                 }
 
-                // Compress to max size
+                // --- Compress to max size ---
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 float quality = 1.0f;
                 while (true) {
@@ -148,6 +150,7 @@ public class ProductService {
                     try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
                         writer.setOutput(ios);
                         writer.write(null, new IIOImage(image, null, null), param);
+                    } finally {
                         writer.dispose();
                     }
 
@@ -158,7 +161,8 @@ public class ProductService {
                     quality -= 0.05f;
                 }
 
-                InputStream compressedInputStream = new ByteArrayInputStream(outputStream.toByteArray());
+                // --- Upload ---
+                byte[] imageBytes = outputStream.toByteArray();
                 PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                         .bucket(bucketName)
                         .key(key)
@@ -166,10 +170,10 @@ public class ProductService {
                         .build();
 
                 s3Client.putObject(putObjectRequest,
-                        software.amazon.awssdk.core.sync.RequestBody.fromInputStream(compressedInputStream, outputStream.size()));
+                        software.amazon.awssdk.core.sync.RequestBody.fromBytes(imageBytes));
 
             } else {
-                // If not an image, upload as-is
+                // Upload raw file if not an image
                 s3Client.putObject(PutObjectRequest.builder()
                                 .bucket(bucketName)
                                 .key(key)

@@ -170,8 +170,8 @@ public class UserService {
         String key = user.getUsername() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
         // --- Step 3: Read image ---
-        BufferedImage image = ImageIO.read(file.getInputStream());
-        if (image == null) {
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        if (originalImage == null) {
             // Not an image, upload as-is
             s3Client.putObject(PutObjectRequest.builder()
                             .bucket(bucketName)
@@ -185,29 +185,38 @@ public class UserService {
             return profileImageUrl;
         }
 
-        // --- Step 4: Convert non-RGB images to RGB ---
-        if (image.getType() != BufferedImage.TYPE_INT_RGB) {
-            BufferedImage rgbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = rgbImage.createGraphics();
-            g.drawImage(image, 0, 0, null);
-            g.dispose();
-            image = rgbImage;
-        }
+        // --- Step 4: Flatten image onto white background (remove transparency) ---
+        BufferedImage image = new BufferedImage(
+                originalImage.getWidth(),
+                originalImage.getHeight(),
+                BufferedImage.TYPE_INT_RGB
+        );
+        Graphics2D g = image.createGraphics();
+        g.setColor(Color.WHITE); // Fill with white background
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.drawImage(originalImage, 0, 0, null);
+        g.dispose();
 
-        // --- Step 5: Resize and compress using properties ---
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        float quality = 1.0f;
+        // --- Step 5: Resize if image is larger than max dimensions ---
         int maxWidth = imageProperties.getMaxWidth();
         int maxHeight = imageProperties.getMaxHeight();
 
-        // Resize if image is larger than max dimensions
         if (image.getWidth() > maxWidth || image.getHeight() > maxHeight) {
-            BufferedImage resizedImage = new BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_RGB);
+            double scale = Math.min((double) maxWidth / image.getWidth(), (double) maxHeight / image.getHeight());
+            int newWidth = (int) (image.getWidth() * scale);
+            int newHeight = (int) (image.getHeight() * scale);
+
+            BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2 = resizedImage.createGraphics();
-            g2.drawImage(image, 0, 0, maxWidth, maxHeight, null);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2.drawImage(image, 0, 0, newWidth, newHeight, null);
             g2.dispose();
             image = resizedImage;
         }
+
+        // --- Step 6: Compress using properties ---
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        float quality = 1.0f;
 
         while (true) {
             outputStream.reset();
@@ -217,21 +226,23 @@ public class UserService {
                 param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
                 param.setCompressionQuality(quality);
             }
+
             try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
                 writer.setOutput(ios);
                 writer.write(null, new IIOImage(image, null, null), param);
+            } finally {
                 writer.dispose();
             }
 
-            if (outputStream.size() / 1024 <= imageProperties.getMaxSizeKb() ||
-                    quality <= imageProperties.getMinQuality()) {
+            if (outputStream.size() / 1024 <= imageProperties.getMaxSizeKb()
+                    || quality <= imageProperties.getMinQuality()) {
                 break;
             }
             quality -= 0.05f;
         }
 
-        // --- Step 6: Upload compressed image ---
-        InputStream compressedInputStream = new ByteArrayInputStream(outputStream.toByteArray());
+        // --- Step 7: Upload compressed image ---
+        byte[] imageBytes = outputStream.toByteArray();
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
@@ -239,9 +250,9 @@ public class UserService {
                 .build();
 
         s3Client.putObject(putObjectRequest,
-                software.amazon.awssdk.core.sync.RequestBody.fromInputStream(compressedInputStream, outputStream.size()));
+                software.amazon.awssdk.core.sync.RequestBody.fromBytes(imageBytes));
 
-        // --- Step 7: Update user record ---
+        // --- Step 8: Update user record ---
         String profileImageUrl = publicUrl + "/" + key;
         user.setProfileImageUrl(profileImageUrl);
         userRepository.save(user);
