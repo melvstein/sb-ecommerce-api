@@ -1,0 +1,1204 @@
+{
+	"info": {
+		"_postman_id": "e7e96d83-0df5-4f26-8b40-8e4a8c520ad1",
+		"name": "Ecommerce API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15493057"
+	},
+	"item": [
+		{
+			"name": "Authentication API",
+			"item": [
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseBody = pm.response.json();\r",
+									"const accessToken = responseBody?.data?.accessToken || null;\r",
+									"const refreshToken = responseBody?.data?.refreshToken || null;\r",
+									"\r",
+									"if (accessToken) {\r",
+									"    pm.collectionVariables.set(\"accessToken\", accessToken);\r",
+									"    console.log(\"Saved accessToken: \", accessToken)\r",
+									"}\r",
+									"\r",
+									"if (refreshToken) {\r",
+									"    pm.collectionVariables.set(\"refreshToken\", refreshToken);\r",
+									"    console.log(\"Saved refreshToken: \", refreshToken)\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{refreshToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"melvstein1\",\r\n    \"password\": \"admin123\"\r\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/auth/refresh-token",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseBody = pm.response.json();\r",
+									"const accessToken = responseBody?.data?.accessToken || null;\r",
+									"const refreshToken = responseBody?.data?.refreshToken || null;\r",
+									"\r",
+									"if (accessToken) {\r",
+									"    pm.collectionVariables.set(\"accessToken\", accessToken);\r",
+									"    console.log(\"Saved accessToken: \", accessToken)\r",
+									"}\r",
+									"\r",
+									"if (refreshToken) {\r",
+									"    pm.collectionVariables.set(\"refreshToken\", refreshToken);\r",
+									"    console.log(\"Saved refreshToken: \", refreshToken)\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"melvstein\",\r\n    \"password\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/auth/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role\": \"admin\",\r\n    \"firstName\": \"Melvin Justine\",\r\n    \"middleName\": \"Lisay\",\r\n    \"lastName\": \"Bayogo\",\r\n    \"email\": \"melvinbayogo@gmail.com\",\r\n    \"username\": \"melvstein\",\r\n    \"password\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/auth/register",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/auth/logout/6857a7f043517f6ef6e4220f",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout",
+								"6857a7f043517f6ef6e4220f"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products API",
+			"item": [
+				{
+					"name": "getAllProducts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"name\": \"Mercury\",\r\n    \"radius\": 0.5,\r\n    \"distance\": 10,\r\n    \"speed\": 0.017,\r\n    \"atmosphere\": null,\r\n    \"ring\": null,\r\n    \"moons\": []\r\n  },\r\n  {\r\n    \"name\": \"Venus\",\r\n    \"radius\": 0.9,\r\n    \"distance\": 18,\r\n    \"speed\": 0.012,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.05,\r\n      \"color\": \"#f5deb3\",\r\n      \"opacity\": 0.3,\r\n      \"emissive\": \"orange\",\r\n      \"emissiveIntensity\": 0.8\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": []\r\n  },\r\n  {\r\n    \"name\": \"Earth\",\r\n    \"radius\": 1,\r\n    \"distance\": 26,\r\n    \"speed\": 0.01,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.2,\r\n      \"color\": \"#00bcd4\",\r\n      \"opacity\": 0.2,\r\n      \"emissive\": \"blue\",\r\n      \"emissiveIntensity\": 1\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Moon\",\r\n        \"radius\": 0.27,\r\n        \"distance\": 3,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Mars\",\r\n    \"radius\": 0.8,\r\n    \"distance\": 34,\r\n    \"speed\": 0.008,\r\n    \"atmosphere\": {\r\n      \"radius\": 0.95,\r\n      \"color\": \"#ff6f00\",\r\n      \"opacity\": 0.15,\r\n      \"emissive\": \"darkred\",\r\n      \"emissiveIntensity\": 0.6\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Phobos\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2,\r\n        \"speed\": 0.04\r\n      },\r\n      {\r\n        \"name\": \"Deimos\",\r\n        \"radius\": 0.08,\r\n        \"distance\": 3,\r\n        \"speed\": 0.02\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Jupiter\",\r\n    \"radius\": 2.5,\r\n    \"distance\": 50,\r\n    \"speed\": 0.006,\r\n    \"atmosphere\": {\r\n      \"radius\": 2.8,\r\n      \"color\": \"#d2b48c\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#ffcc80\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#aaaaaa\",\r\n      \"innerRadius\": 2.7,\r\n      \"outerRadius\": 3.2,\r\n      \"tilt\": 1.5167963267948965,\r\n      \"opacity\": 0.2\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Io\",\r\n        \"radius\": 0.2,\r\n        \"distance\": 2.5,\r\n        \"speed\": 0.04\r\n      },\r\n      {\r\n        \"name\": \"Europa\",\r\n        \"radius\": 0.18,\r\n        \"distance\": 3,\r\n        \"speed\": 0.035\r\n      },\r\n      {\r\n        \"name\": \"Ganymede\",\r\n        \"radius\": 0.3,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.03\r\n      },\r\n      {\r\n        \"name\": \"Callisto\",\r\n        \"radius\": 0.25,\r\n        \"distance\": 4,\r\n        \"speed\": 0.025\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Saturn\",\r\n    \"radius\": 2,\r\n    \"distance\": 65,\r\n    \"speed\": 0.005,\r\n    \"atmosphere\": {\r\n      \"radius\": 2.3,\r\n      \"color\": \"#ffe0b2\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#ffd180\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#b1976b\",\r\n      \"innerRadius\": 2.2,\r\n      \"outerRadius\": 3.5,\r\n      \"tilt\": 1.1047963267948965,\r\n      \"opacity\": 0.6\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Titan\",\r\n        \"radius\": 0.25,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.025\r\n      },\r\n      {\r\n        \"name\": \"Enceladus\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2.8,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Uranus\",\r\n    \"radius\": 1.5,\r\n    \"distance\": 80,\r\n    \"speed\": 0.003,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.7,\r\n      \"color\": \"#b2ebf2\",\r\n      \"opacity\": 0.2,\r\n      \"emissive\": \"#81d4fa\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#b5e0ff\",\r\n      \"innerRadius\": 1.6,\r\n      \"outerRadius\": 1.8,\r\n      \"tilt\": -1.5707963267948966,\r\n      \"opacity\": 0.15\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Miranda\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2.5,\r\n        \"speed\": 0.035\r\n      },\r\n      {\r\n        \"name\": \"Ariel\",\r\n        \"radius\": 0.12,\r\n        \"distance\": 3,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Neptune\",\r\n    \"radius\": 1.4,\r\n    \"distance\": 95,\r\n    \"speed\": 0.002,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.6,\r\n      \"color\": \"#a0c4ff\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#90caf9\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#8888ff\",\r\n      \"innerRadius\": 1.5,\r\n      \"outerRadius\": 1.7,\r\n      \"tilt\": 1.0767963267948966,\r\n      \"opacity\": 0.1\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Triton\",\r\n        \"radius\": 0.2,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  }\r\n]\r\n"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products?filter=",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getProductById",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sku\": \"123\",\r\n    \"name\": \"mango\",\r\n    \"description\": \"Sample description\",\r\n    \"price\": 5,\r\n    \"tags\": [\"fruits\", \"yellow\"]\r\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/6851bc2059405f8cc8175914",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"6851bc2059405f8cc8175914"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getProductBySku",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sku\": \"123\",\r\n    \"name\": \"mango\",\r\n    \"description\": \"Sample description\",\r\n    \"price\": 5,\r\n    \"tags\": [\"fruits\", \"yellow\"]\r\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/sku/1232231",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"sku",
+								"1232231"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addProduct",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sku\": \"12322321222\",\r\n    \"name\": \"mango1222\",\r\n    \"description\": \"Sample description\",\r\n    \"price\": 5,\r\n    \"tags\": [\"fruits\", \"yellow\"],\r\n    \"brand\": \"testbrand\",\r\n    \"isActive\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateProductById",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sku\": \"1233\",\r\n    \"name\": \"mango1\",\r\n    \"description\": \"Sample descriptionssss\",\r\n    \"price\": 5,\r\n    \"tags\": [\"fruits\", \"yellow1\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/6857b9fddaa429b768faa33a",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"6857b9fddaa429b768faa33a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteProductById",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sku\": \"123\",\r\n    \"name\": \"mango\",\r\n    \"description\": \"Sample description\",\r\n    \"price\": 5,\r\n    \"tags\": [\"fruits\", \"yellow\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/684cada373ad4b901b3a6d3e",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"684cada373ad4b901b3a6d3e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "uploadProductImages",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": "postman-cloud:///1f066704-5b9a-4510-b3b4-1d144fda269a"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/6857b6f5890f6790b5896ceb/upload-product-images",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"6857b6f5890f6790b5896ceb",
+								"upload-product-images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteProductImages",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[8]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/products/6857b6f5890f6790b5896ceb/delete-product-images",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"products",
+								"6857b6f5890f6790b5896ceb",
+								"delete-product-images"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users API",
+			"item": [
+				{
+					"name": "getAllUsers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"name\": \"Mercury\",\r\n    \"radius\": 0.5,\r\n    \"distance\": 10,\r\n    \"speed\": 0.017,\r\n    \"atmosphere\": null,\r\n    \"ring\": null,\r\n    \"moons\": []\r\n  },\r\n  {\r\n    \"name\": \"Venus\",\r\n    \"radius\": 0.9,\r\n    \"distance\": 18,\r\n    \"speed\": 0.012,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.05,\r\n      \"color\": \"#f5deb3\",\r\n      \"opacity\": 0.3,\r\n      \"emissive\": \"orange\",\r\n      \"emissiveIntensity\": 0.8\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": []\r\n  },\r\n  {\r\n    \"name\": \"Earth\",\r\n    \"radius\": 1,\r\n    \"distance\": 26,\r\n    \"speed\": 0.01,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.2,\r\n      \"color\": \"#00bcd4\",\r\n      \"opacity\": 0.2,\r\n      \"emissive\": \"blue\",\r\n      \"emissiveIntensity\": 1\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Moon\",\r\n        \"radius\": 0.27,\r\n        \"distance\": 3,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Mars\",\r\n    \"radius\": 0.8,\r\n    \"distance\": 34,\r\n    \"speed\": 0.008,\r\n    \"atmosphere\": {\r\n      \"radius\": 0.95,\r\n      \"color\": \"#ff6f00\",\r\n      \"opacity\": 0.15,\r\n      \"emissive\": \"darkred\",\r\n      \"emissiveIntensity\": 0.6\r\n    },\r\n    \"ring\": null,\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Phobos\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2,\r\n        \"speed\": 0.04\r\n      },\r\n      {\r\n        \"name\": \"Deimos\",\r\n        \"radius\": 0.08,\r\n        \"distance\": 3,\r\n        \"speed\": 0.02\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Jupiter\",\r\n    \"radius\": 2.5,\r\n    \"distance\": 50,\r\n    \"speed\": 0.006,\r\n    \"atmosphere\": {\r\n      \"radius\": 2.8,\r\n      \"color\": \"#d2b48c\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#ffcc80\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#aaaaaa\",\r\n      \"innerRadius\": 2.7,\r\n      \"outerRadius\": 3.2,\r\n      \"tilt\": 1.5167963267948965,\r\n      \"opacity\": 0.2\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Io\",\r\n        \"radius\": 0.2,\r\n        \"distance\": 2.5,\r\n        \"speed\": 0.04\r\n      },\r\n      {\r\n        \"name\": \"Europa\",\r\n        \"radius\": 0.18,\r\n        \"distance\": 3,\r\n        \"speed\": 0.035\r\n      },\r\n      {\r\n        \"name\": \"Ganymede\",\r\n        \"radius\": 0.3,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.03\r\n      },\r\n      {\r\n        \"name\": \"Callisto\",\r\n        \"radius\": 0.25,\r\n        \"distance\": 4,\r\n        \"speed\": 0.025\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Saturn\",\r\n    \"radius\": 2,\r\n    \"distance\": 65,\r\n    \"speed\": 0.005,\r\n    \"atmosphere\": {\r\n      \"radius\": 2.3,\r\n      \"color\": \"#ffe0b2\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#ffd180\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#b1976b\",\r\n      \"innerRadius\": 2.2,\r\n      \"outerRadius\": 3.5,\r\n      \"tilt\": 1.1047963267948965,\r\n      \"opacity\": 0.6\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Titan\",\r\n        \"radius\": 0.25,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.025\r\n      },\r\n      {\r\n        \"name\": \"Enceladus\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2.8,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Uranus\",\r\n    \"radius\": 1.5,\r\n    \"distance\": 80,\r\n    \"speed\": 0.003,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.7,\r\n      \"color\": \"#b2ebf2\",\r\n      \"opacity\": 0.2,\r\n      \"emissive\": \"#81d4fa\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#b5e0ff\",\r\n      \"innerRadius\": 1.6,\r\n      \"outerRadius\": 1.8,\r\n      \"tilt\": -1.5707963267948966,\r\n      \"opacity\": 0.15\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Miranda\",\r\n        \"radius\": 0.1,\r\n        \"distance\": 2.5,\r\n        \"speed\": 0.035\r\n      },\r\n      {\r\n        \"name\": \"Ariel\",\r\n        \"radius\": 0.12,\r\n        \"distance\": 3,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  },\r\n  {\r\n    \"name\": \"Neptune\",\r\n    \"radius\": 1.4,\r\n    \"distance\": 95,\r\n    \"speed\": 0.002,\r\n    \"atmosphere\": {\r\n      \"radius\": 1.6,\r\n      \"color\": \"#a0c4ff\",\r\n      \"opacity\": 0.25,\r\n      \"emissive\": \"#90caf9\",\r\n      \"emissiveIntensity\": 0.5\r\n    },\r\n    \"ring\": {\r\n      \"color\": \"#8888ff\",\r\n      \"innerRadius\": 1.5,\r\n      \"outerRadius\": 1.7,\r\n      \"tilt\": 1.0767963267948966,\r\n      \"opacity\": 0.1\r\n    },\r\n    \"moons\": [\r\n      {\r\n        \"name\": \"Triton\",\r\n        \"radius\": 0.2,\r\n        \"distance\": 3.5,\r\n        \"speed\": 0.03\r\n      }\r\n    ]\r\n  }\r\n]\r\n"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUserById",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users/686403347463bed890f397f5",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"686403347463bed890f397f5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateUserById",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"role\": \"admin\",\r\n    \"email\": \"melvinbayogo@gmail.com\",\r\n    \"username\": \"melvstein\",\r\n    \"firstName\": \"mj\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users/6874e2dbcec8d4c7e398abf7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"6874e2dbcec8d4c7e398abf7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteUserById",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users/6857a7f043517f6ef6e4220f",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"6857a7f043517f6ef6e4220f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateUserPasswordById",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentPassword\": \"aw123456\",\r\n    \"newPassword\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users/6874e2dbcec8d4c7e398abf7/password",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"6874e2dbcec8d4c7e398abf7",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "uploadUserProfileImage",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f0666d0-c864-4580-8625-72f30f5ec2aa"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/users/6874e2dbcec8d4c7e398abf7/upload-profile-image",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"6874e2dbcec8d4c7e398abf7",
+								"upload-profile-image"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customers API",
+			"item": [
+				{
+					"name": "getAllCustomers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getCustomerById",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers/689db4e5a32ce191ff4c23a0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"689db4e5a32ce191ff4c23a0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getCustomerByEmail",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers/email/melvinbayogo@gmail.com",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"email",
+								"melvinbayogo@gmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addCustomer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"provider\": \"Github\",\r\n    \"username\": \"melvstein32224\",\r\n    \"email\": \"melvinbayogo@gmail.com23224\",\r\n    \"firstName\": \"Melvin Justine\",\r\n    \"middleName\": \"Lisay\",\r\n    \"lastName\": \"Bayogo\",\r\n    \"contactNumber\": \"09560627650\",\r\n    \"address\": {\r\n        \"street\": \"Type B NPB Reservation\",\r\n        \"district\": \"Poblacion\",\r\n        \"city\": \"Muntinlupa City\",\r\n        \"zipCode\": 1776,\r\n        \"province\": \"NCR\",\r\n        \"country\": \"Philippines\",\r\n        \"addressType\": \"home\"\r\n    },\r\n    \"isActive\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateCustomerById",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"provider\": \"Google1\",\r\n    \"username\": \"melvstein1\",\r\n    \"email\": \"melvinbayogo@gmail.com\",\r\n    \"firstName\": \"Melvin Justine1\",\r\n    \"middleName\": \"Lisay\",\r\n    \"lastName\": \"Bayogo\",\r\n    \"contactNumber\": \"09560627650\",\r\n    \"address\": {\r\n        \"street\": \"Type B NPB Reservation222\",\r\n        \"district\": \"Poblacion\",\r\n        \"city\": \"Muntinlupa City\",\r\n        \"zipCode\": 17766,\r\n        \"province\": \"NCR222\",\r\n        \"country\": \"Philippines\",\r\n        \"addressType\": \"home\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers/689db4e5a32ce191ff4c23a0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"689db4e5a32ce191ff4c23a0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteCustomerById",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/customers/6896c824d9ec475f5d2629d3",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"6896c824d9ec475f5d2629d3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cart API",
+			"item": [
+				{
+					"name": "getCartByCustomerId",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/carts/customer/68dfae2653d988c2e2466ef7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"carts",
+								"customer",
+								"68dfae2653d988c2e2466ef7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addToCart",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"68dfae2653d988c2e2466ef7\",\n    \"action\": \"increase\",\n    \"items\": [\n        {\n            \"sku\": \"1232231\",\n            \"quantity\": 1\n        },\n        {\n            \"sku\": \"12322321222\",\n            \"quantity\": 1\n        },\n        {\n            \"sku\": \"test2\",\n            \"quantity\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/carts/update",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"carts",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "minusToCard",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"68dfae2653d988c2e2466ef7\",\n    \"action\": \"decrease\",\n    \"items\": [\n        {\n            \"sku\": \"213213221\",\n            \"quantity\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/carts/update",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"carts",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "removeItemFromCart",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"68dfae2653d988c2e2466ef7\",\n    \"sku\": \"213213221\"\n    \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/carts/remove-item",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"carts",
+								"remove-item"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteCartByCustomerId",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/carts/customer/68dfae2653d988c2e2466ef7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"carts",
+								"customer",
+								"68dfae2653d988c2e2466ef7"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Order API",
+			"item": [
+				{
+					"name": "getOrders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "checkout",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"68dfae2653d988c2e2466ef7\",\n    \"paymentMethod\": \"COD\",\n    \"shippingDetails\": {\n        \"receiverFirstName\": \"Melvin\",\n        \"receiverLastName\": \"Bayogo\",\n        \"receiverContactNumber\": \"09560627650\",\n        \"receiverEmailAddress\": \"melvinbayogo@gmail.com\",\n        \"shippingAddress\": {\n            \"addressType\": \"home\",\n            \"street\": \"Type B, NBP Reservation\",\n            \"district\": \"Poblacion\",\n            \"city\": \"Muntinlupa City\",\n            \"province\": \"NCR\",\n            \"country\": \"Philippines\",\n            \"zipCode\": 1776\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders/checkout",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getOrderById",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders/6903db6f09043618cae89c3e",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"6903db6f09043618cae89c3e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getOrdersByCustomerId",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders/customer/68dfae2653d988c2e2466ef7?status=2&status=3",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"customer",
+								"68dfae2653d988c2e2466ef7"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "2"
+								},
+								{
+									"key": "status",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteOrderById",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"1\",\n    \"paymentMethod\": \"COD\",\n    \"items\": [\n        {\n            \"productId\": \"21321322\",\n            \"quantity\": 1\n        }\n    ],\n    \"totalAmount\": 500.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders/68e59a2e9d1ed5c1cc76ea1e",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"68e59a2e9d1ed5c1cc76ea1e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateOrderStatus",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"orderId\": \"690da225f10ef5f0b4db9b02\",\n    \"status\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/api/v1/orders/update-status",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"orders",
+								"update-status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "apiUrl",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": ""
+		}
+	]
+}
